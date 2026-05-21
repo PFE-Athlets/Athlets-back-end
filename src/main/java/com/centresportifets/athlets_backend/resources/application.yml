@@ -1,0 +1,15 @@
+spring:
+    application:
+        name: athlets-backend
+    datasource:
+        url: jdbc:postgresql://localhost:5432/athlete_tracker
+        username: dev_user
+        password: dev_password
+        # driver-class-name: org.postgresql.Driver
+    jpa:
+        hibernate:
+            ddl-auto: update
+        # properties:
+        #     hibernate:
+        #         dialect: org.hibernate.dialect.PostgreSQLDialect
+        # show-sql: true   
