@@ -11,6 +11,7 @@ Ensure you have the following installed on your local machine:
 * [Java 21 SDK](https://adoptium.net/)
 * Maven
 * Docker
+* Docker compose
 
 ## Getting Started
 
@@ -24,20 +25,29 @@ cd <project-directory>
 
 ### 2. Install dependencies
 
-Run this to make sure all the dependencies are downloaded from the pom.xml
+From the root, run this to make sure all the dependencies are downloaded from the pom.xml
 
 > Run everytime the pom.xml is modified
 
 ```bash
 mvn clean install
 ```
+### 3. Create a .env
 
-### 3. Run the application locally
+Copy the .env.example file in the root folder and rename it to .env.
+Fill out the empty fields according to the values given to you by the admin.
 
-Connect to the database using docker.
+### 4. Run the database locally
+
+Connect to the database using dockerm which will run a database container in the background.
 ```bash
 docker compose up -d
 ```
+** IMPORTANT **: Once you are done developping, run docker compose down, or else docker will keep the container running in the background and drain your ram.
+```bash
+docker compose down
+```
+### 5. Run the project
 
 Run the springboot project, which will start springboot on port 8080.
 ```bash
@@ -47,3 +57,5 @@ mvn spring-boot:run
 ## Database
 
 Every time springboot is booted, it creates a new docker container from a postgresql image. We can then procede to seed it to mock the function of the backend while waiting for an actual database, and to avoid modifying production data.
+
+NEVER use production data when running the code locally. Same thing for the tests.
