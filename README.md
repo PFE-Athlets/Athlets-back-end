@@ -27,11 +27,12 @@ cd <project-directory>
 
 From the root, run this to make sure all the dependencies are downloaded from the pom.xml
 
-> Run everytime the pom.xml is modified
-
 ```bash
 mvn clean install
 ```
+
+> Run everytime the pom.xml file is modified
+
 ### 3. Create a .env
 
 Copy the .env.example file in the root folder and rename it to .env.
@@ -59,3 +60,14 @@ mvn spring-boot:run
 Every time springboot is booted, it creates a new docker container from a postgresql image. We can then procede to seed it to mock the function of the backend while waiting for an actual database, and to avoid modifying production data.
 
 NEVER use production data when running the code locally. Same thing for the tests.
+
+In order to view the database, download dBeaver, and create a new connection with a postgresql database.
+
+Then, enter the following credentials for dev:
+```
+url: jdbc:postgresql://localhost:5432/athlete_tracker
+username: dev_user
+password: dev_password
+```
+
+> Note that all the data gets deleted the instant you shut down docker, so all saves are temporary. To modify it permanently, modify the data.sql file.
