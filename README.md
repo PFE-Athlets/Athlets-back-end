@@ -71,3 +71,7 @@ password: dev_password
 ```
 
 > Note that all the data gets deleted the instant you shut down docker, so all saves are temporary. To modify it permanently, modify the data.sql file.
+
+## Documentation
+
+An auto-generated swagger is available to consult the different api calls available. They can be viewed here: http://localhost:8080/swagger-ui/index.html#/

@@ -15,6 +15,6 @@ public class AthletsBackendApplication {
 
 	@GetMapping("/")
     public String helloWorld() {
-        return "Athlet";
+        return "Athlets";
     }
 }
