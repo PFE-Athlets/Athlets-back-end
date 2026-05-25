@@ -75,7 +75,6 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -125,5 +124,4 @@
             </plugin>
 		</plugins>
 	</build>
-
 </project>
