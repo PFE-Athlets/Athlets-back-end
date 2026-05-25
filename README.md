@@ -45,7 +45,7 @@ Run the springboot project, which will start springboot on port 8080.
 mvn spring-boot:run
 ```
 
-### 5. Run the project
+### 5. Format project
 
 Before creating your merge requests, make sure to run the following command to format the code properly:
 ```bash
@@ -61,7 +61,7 @@ NEVER use production data when running the code locally. Same thing for the test
 In order to view the database, download dBeaver, and create a new connection with a postgresql database.
 
 Then, enter the following credentials for dev:
-```
+```bash
 url: jdbc:postgresql://localhost:5432/athlete_tracker
 username: dev_user
 password: dev_password

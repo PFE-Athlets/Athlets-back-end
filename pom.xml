@@ -112,13 +112,14 @@
                 <version>2.44.0</version>
                 <configuration>
                     <java>
-                        <googleJavaFormat>
-                            <version>1.22.0</version>
-                            <style>GOOGLE</style>
-                        </googleJavaFormat>
                         <removeUnusedImports/>
-                        <trimTrailingWhitespace/>
-                        <formatAnnotations/>
+						<trimTrailingWhitespace/>
+            			<endWithNewline/>
+						<formatAnnotations/>
+						
+						<indent>
+							<tabs>true</tabs>
+						</indent>
                     </java>
                 </configuration>
             </plugin>

@@ -10,23 +10,26 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/auth/login")
-                    .permitAll() // Only route available for login
-                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                    .permitAll() // Needed to load the swagger page
-                    .anyRequest()
-                    .authenticated());
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf(csrf -> csrf.disable())
+			.authorizeHttpRequests(
+				auth ->
+					auth.requestMatchers("/api/auth/login")
+						.permitAll()
+						.requestMatchers(
+							"/v3/api-docs/**",
+							"/swagger-ui/**",
+							"/swagger-ui.html")
+						.permitAll()
+						.anyRequest()
+						.authenticated());
 
-    return http.build();
-  }
+		return http.build();
+	}
 }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 interface AuthUserRepository extends JpaRepository<AuthUser, Long> {
 
-  Optional<AuthUser> findByName(String name);
+	Optional<AuthUser> findByName(String name);
 
-  boolean existsByName(String name);
+	boolean existsByName(String name);
 }

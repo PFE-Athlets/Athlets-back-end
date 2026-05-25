@@ -1,6 +1,5 @@
 DROP TABLE IF EXISTS "auth_user" CASCADE;
 
-
 CREATE TABLE "auth_user" (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
