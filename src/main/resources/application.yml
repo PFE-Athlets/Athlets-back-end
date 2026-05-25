@@ -24,3 +24,7 @@ logging:
                 jdbc:
                     datasource:
                         init: DEBUG
+        com:
+            centresportifets:
+                athlets_backend:
+                    auth: TRACE

@@ -36,26 +36,23 @@ mvn clean install
 ### 3. Create a .env
 
 Copy the .env.example file in the root folder and rename it to .env.
-Fill out the empty fields according to the values given to you by the admin.
+Fill out the empty fields according to the values given to you by the admin. Empty for now, but will be filled as the project develops.
 
-### 4. Run the database locally
-
-Connect to the database using dockerm which will run a database container in the background.
-```bash
-docker compose up -d
-```
-** IMPORTANT **: Once you are done developping, run docker compose down, or else docker will keep the container running in the background and drain your ram.
-```bash
-docker compose down
-```
-### 5. Run the project
+### 4. Run the project
 
 Run the springboot project, which will start springboot on port 8080.
 ```bash
 mvn spring-boot:run
 ```
 
-## Database
+### 5. Run the project
+
+Before creating your merge requests, make sure to run the following command to format the code properly:
+```bash
+mvn spotless:apply
+```
+
+## PostgreSQL Database
 
 Every time springboot is booted, it creates a new docker container from a postgresql image. We can then procede to seed it to mock the function of the backend while waiting for an actual database, and to avoid modifying production data.
 
@@ -75,3 +72,5 @@ password: dev_password
 ## Documentation
 
 An auto-generated swagger is available to consult the different api calls available. They can be viewed here: http://localhost:8080/swagger-ui/index.html#/
+
+!!! Before testing any route, you must authenticate yourself with the route api/auth/login
