@@ -74,3 +74,10 @@ password: dev_password
 An auto-generated swagger is available to consult the different api calls available. They can be viewed here: http://localhost:8080/swagger-ui/index.html#/
 
 !!! Before testing any route, you must authenticate yourself with the route api/auth/login
+
+## Unit tests
+
+To run all unit tests, you can run
+```bash
+mvn clean test
+```
