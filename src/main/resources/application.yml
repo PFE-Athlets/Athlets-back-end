@@ -1,0 +1,30 @@
+spring:
+    application:
+        name: athlets-backend
+    # TODO: Currently, we are using a generic account for dev. Once we deploy this, develop alternate application.yml's to fit environments
+    datasource:
+        url: jdbc:postgresql://localhost:5432/athlete_tracker
+        username: dev_user
+        password: dev_password
+        # driver-class-name: org.postgresql.Driver
+    jpa:
+        hibernate:
+            ddl-auto: none
+    sql:
+        init:
+            mode: always
+    docker:
+        compose:
+            enabled: true
+            file: docker-compose.yml
+logging:
+    level:
+        org:
+            springframework:
+                jdbc:
+                    datasource:
+                        init: DEBUG
+        com:
+            centresportifets:
+                athlets_backend:
+                    auth: TRACE

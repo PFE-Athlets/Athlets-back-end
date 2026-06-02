@@ -1,0 +1,15 @@
+services:
+  postgres-db:
+    image: 'postgres:11'
+    container_name: athlete_tracker_db
+    environment:
+      POSTGRES_DB: athlete_tracker
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
