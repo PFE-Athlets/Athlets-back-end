@@ -74,9 +74,8 @@ public class AuthController {
 	 * @param response       the outgoing HTTP response where the JSESSIONID cookie
 	 *                       is removed upon
 	 *                       success
-	 * @return a {@link ResponseEntity} returning {@code 200 OK} with temporary
-	 *         placeholder text on success. TO CHANGE - returns nothing for now,
-	 *         once the database defined, a DTO with the appropriate user data
+	 * @return a {@link ResponseEntity} returning {@code 200 OK} with a
+	 *         placeholder text on success.
 	 */
 	@PostMapping("/logout")
 	public ResponseEntity<?> logoutUser(
@@ -85,6 +84,6 @@ public class AuthController {
 			HttpServletResponse response) {
 
 		authService.logoutUser(authentication, request, response);
-		return ResponseEntity.ok("logged out");
+		return ResponseEntity.ok().build();
 	}
 }
