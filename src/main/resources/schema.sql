@@ -1,3 +1,18 @@
+DROP TABLE IF EXISTS Resultat CASCADE;
+DROP TABLE IF EXISTS Tests CASCADE;
+DROP TABLE IF EXISTS Batterie_Test CASCADE;
+DROP TABLE IF EXISTS Athlete_Sport CASCADE;
+DROP TABLE IF EXISTS Athlete CASCADE;
+DROP TABLE IF EXISTS Coach CASCADE;
+DROP TABLE IF EXISTS Equipe CASCADE;
+DROP TABLE IF EXISTS Administrateur CASCADE;
+DROP TABLE IF EXISTS Utilisateur CASCADE;
+DROP TABLE IF EXISTS Groupe CASCADE;
+DROP TABLE IF EXISTS Discipline CASCADE;
+DROP TABLE IF EXISTS Position CASCADE;
+DROP TABLE IF EXISTS Sport CASCADE;
+DROP TABLE IF EXISTS Test_Sport CASCADE;
+
 -- ==========================================
 -- 1. REFERENCE TABLES & INDEPENDENT ENTITIES
 -- ==========================================
@@ -137,4 +152,12 @@ CREATE TABLE Resultat (
     CONSTRAINT fk_resultat_test FOREIGN KEY (id_test) REFERENCES Tests(id_test) ON DELETE CASCADE,
     CONSTRAINT fk_resultat_athlete FOREIGN KEY (id_athlete) REFERENCES Athlete(id_utilisateur) ON DELETE CASCADE,
     CONSTRAINT chk_statut_resultat CHECK (statut IN ('Accepté', 'Refusé', 'En cours d''approbation'))
+);
+
+CREATE TABLE Test_Sport (
+    id_test INT NOT NULL,
+    id_sport INT NOT NULL,
+    PRIMARY KEY (id_test, id_sport),
+    CONSTRAINT fk_test_sport_test FOREIGN KEY (id_test) REFERENCES Tests(id_test) ON DELETE CASCADE,
+    CONSTRAINT fk_test_sport_sport FOREIGN KEY (id_sport) REFERENCES Sport(id_sport) ON DELETE CASCADE
 );
