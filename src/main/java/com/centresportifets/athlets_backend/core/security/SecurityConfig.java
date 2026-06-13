@@ -34,13 +34,13 @@ public class SecurityConfig {
 						.anyRequest()
 						.authenticated())
 			.cors((cors) -> cors
-				.configurationSource(apiConfigurationSource())
+				.configurationSource(LocalConfigurationSource())
 			);
 
 		return http.build();
 	}
 
-	UrlBasedCorsConfigurationSource apiConfigurationSource() {
+	UrlBasedCorsConfigurationSource LocalConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
 		configuration.setAllowedMethods(Arrays.asList("GET","POST","OPTIONS"));
