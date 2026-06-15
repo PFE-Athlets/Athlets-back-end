@@ -1,5 +1,9 @@
 package com.centresportifets.athlets_backend.physicalTest;
 
-public class PhysicalTestRepository {
-    
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PhysicalTestRepository extends JpaRepository<PhysicalTest, Long> {
+    // You do not need to write anything here!
 }
