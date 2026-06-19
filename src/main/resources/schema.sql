@@ -137,8 +137,8 @@ CREATE TABLE Tests (
     id_test SERIAL PRIMARY KEY,
     nom_test VARCHAR(20) NOT NULL,
     unite_mesure VARCHAR(10) NOT NULL,
-    protocole TEXT -- Using TEXT for CLOB compatibility,
-    proof_needed NUMBER
+    protocole TEXT, -- Using TEXT for CLOB compatibility,
+    proof_needed VARCHAR(20)
 );
 
 CREATE TABLE Resultat (

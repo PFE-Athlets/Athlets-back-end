@@ -23,7 +23,6 @@ public class PhysicalTestController {
         this.physicalTestService = physicalTestService;
     }
 
-
     @PostMapping("/create")
 	public ResponseEntity<Void> createPhysicalTest(@RequestBody PhysicalTestCreateRequest request) {
         physicalTestService.createPhysicalTest(request);

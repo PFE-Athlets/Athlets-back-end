@@ -32,7 +32,7 @@ public class PhysicalTestService {
         newTest.setProof(request.getProof());
 
         if(request.getSportNames() != null && !request.getSportNames().isEmpty()){
-            List<Sport> sports = sportRepository.findAllByName(request.getSportNames());
+            List<Sport> sports = sportRepository.findAllByNameIn(request.getSportNames());
             newTest.setSports(new HashSet<>(sports));
         }
 

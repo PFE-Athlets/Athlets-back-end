@@ -37,7 +37,7 @@ public class PhysicalTest {
     @Column(name = "protocole")
     private String protocole;
 
-    @Column(name = "proof")
+    @Column(name = "proof_needed")
     private String proof;
 
     @ManyToMany
