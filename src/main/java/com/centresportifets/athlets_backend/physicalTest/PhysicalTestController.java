@@ -1,7 +1,10 @@
 package com.centresportifets.athlets_backend.physicalTest;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,5 +30,11 @@ public class PhysicalTestController {
 	public ResponseEntity<Void> createPhysicalTest(@RequestBody PhysicalTestCreateRequest request) {
         physicalTestService.createPhysicalTest(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PhysicalTest>> getAllPhysicalTests() {
+        List<PhysicalTest> tests = physicalTestService.getPhysicalTests();
+        return ResponseEntity.ok(tests);
     }
 }
