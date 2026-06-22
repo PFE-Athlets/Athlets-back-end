@@ -63,7 +63,7 @@ public class AuthService {
 			AuthUser authuser, HttpServletRequest request, HttpServletResponse response) {
 		Authentication authentication =
 				UsernamePasswordAuthenticationToken.authenticated(
-						authuser.getName(), null, List.of(new SimpleGrantedAuthority("ADMIN")));
+						authuser.getUsername(), null, List.of(new SimpleGrantedAuthority("ADMIN")));
 
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication);
