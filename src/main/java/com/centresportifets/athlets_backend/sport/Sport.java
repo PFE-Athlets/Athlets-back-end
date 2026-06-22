@@ -15,9 +15,8 @@ public class Sport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_sport")
     private Long id;
 
-    @Column(name = "nom_sport", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 }

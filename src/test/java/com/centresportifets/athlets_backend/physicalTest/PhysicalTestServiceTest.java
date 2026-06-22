@@ -3,8 +3,6 @@ package com.centresportifets.athlets_backend.physicalTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +53,7 @@ public class PhysicalTestServiceTest {
         PhysicalTestCreateRequest request = new PhysicalTestCreateRequest();
         request.setTestName("Beep Test");
         request.setUnit("Level");
-        request.setProtocole("20m shuttle runs");
+        request.setProtocol("20m shuttle runs");
         request.setProof("Video upload");
         request.setSportNames(List.of("Football", "Basketball"));
 
@@ -76,7 +74,7 @@ public class PhysicalTestServiceTest {
         
         assertThat(savedTest.getName()).isEqualTo("Beep Test");
         assertThat(savedTest.getUnit()).isEqualTo("Level");
-        assertThat(savedTest.getProtocole()).isEqualTo("20m shuttle runs");
+        assertThat(savedTest.getProtocol()).isEqualTo("20m shuttle runs");
         assertThat(savedTest.getProof()).isEqualTo("Video upload");
         
         assertThat(savedTest.getSports()).hasSize(2);

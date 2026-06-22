@@ -8,7 +8,7 @@ import lombok.Data;
 public class PhysicalTestCreateRequest {
     private String testName;
     private String unit;
-    private String protocole;
+    private String protocol;
     private List<String> sportNames;
     private String proof;
 }

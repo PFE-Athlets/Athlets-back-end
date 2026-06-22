@@ -18,24 +18,24 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
-@Table(name = "tests")
+@Table(name = "test")
 @Entity
 public class PhysicalTest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_test")
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "nom_test", nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 20)
     private String name;
 
-    @Column(name = "unite_mesure", nullable = false, length = 10)
+    @Column(name = "unit_of_mesure", nullable = false, length = 10)
     private String unit;
 
     @Lob
-    @Column(name = "protocole")
-    private String protocole;
+    @Column(name = "protocol")
+    private String protocol;
 
     @Column(name = "proof_needed")
     private String proof;
@@ -43,8 +43,8 @@ public class PhysicalTest {
     @ManyToMany
     @JoinTable(
         name = "Test_Sport",
-        joinColumns = @JoinColumn(name = "id_test"),
-        inverseJoinColumns = @JoinColumn(name = "id_sport")
+        joinColumns = @JoinColumn(name = "test_id"),
+        inverseJoinColumns = @JoinColumn(name = "sport_id")
     )
     private Set<Sport> sports = new HashSet<>();
 }

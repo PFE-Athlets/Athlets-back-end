@@ -28,7 +28,7 @@ public class PhysicalTestService {
 
         newTest.setName(request.getTestName());
         newTest.setUnit(request.getUnit());
-        newTest.setProtocole(request.getProtocole());
+        newTest.setProtocol(request.getProtocol());
         newTest.setProof(request.getProof());
 
         if(request.getSportNames() != null && !request.getSportNames().isEmpty()){
