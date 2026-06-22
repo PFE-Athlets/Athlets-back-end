@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
@@ -18,13 +19,14 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 	private final AuthUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
-
+	private final SecurityContextLogoutHandler logoutHandler;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
 
-	public AuthService(AuthUserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public AuthService(AuthUserRepository userRepository, PasswordEncoder passwordEncoder, SecurityContextLogoutHandler logoutHandler) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.logoutHandler = logoutHandler;
 	}
 
 	/**
@@ -69,5 +71,20 @@ public class AuthService {
 		SecurityContextHolder.setContext(context);
 
 		securityContextRepository.saveContext(context, request, response);
+	}
+
+	/**
+	 * Logs out the user from springboot, and invalidates the JSESSIONID token on the frontend
+	 * browser
+	 *
+	 * @param authentication the current authentication object of the user to be logged out, used to
+	 *     invalidate the security context session
+	 * @param request the incoming HTTP request used to bind and establish the security context
+	 *     session
+	 * @param response the outgoing HTTP response where the JSESSIONID cookie is injected upon
+	 *     success
+	 */
+	public void logoutUser(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+		logoutHandler.logout(request, response, authentication);
 	}
 }
