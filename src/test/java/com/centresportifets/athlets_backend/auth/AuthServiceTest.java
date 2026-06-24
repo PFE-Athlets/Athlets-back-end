@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 class AuthServiceTest {
 
 	@Mock
-	private AuthUserRepository userRepository;
+	private AuthRepository userRepository;
 
 	@Mock
 	private PasswordEncoder passwordEncoder;

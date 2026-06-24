@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface AuthUserRepository extends JpaRepository<AuthUser, Long> {
+interface AuthRepository extends JpaRepository<UserAccount, Long> {
 
-	Optional<AuthUser> findByName(String name);
+	Optional<UserAccount> findByUsername(String username);
 
-	boolean existsByName(String name);
+	boolean existsByUsername(String username);
 }

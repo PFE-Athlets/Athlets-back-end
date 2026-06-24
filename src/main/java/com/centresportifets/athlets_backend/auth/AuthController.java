@@ -13,17 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Authentication controller", description = "Handles basic user authentication flow and account creation")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
 	private final AuthService authService;
-
-	public AuthController(AuthService authService) {
-		this.authService = authService;
-	}
 
 	private record AuthCredentials(String username, String password) {
 	}
@@ -52,14 +50,14 @@ public class AuthController {
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		Optional<AuthUser> authUserOpt = authService.verifyAndFetchUser(credentials.username, credentials.password);
+		Optional<UserAccount> UserAccountOpt = authService.verifyAndFetchUser(credentials.username, credentials.password);
 
-		if (authUserOpt.isEmpty()) {
+		if (UserAccountOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body("Invalid username or password");
 		}
 
-		authService.loginUser(authUserOpt.get(), request, response);
+		authService.loginUser(UserAccountOpt.get(), request, response);
 
 		return ResponseEntity.ok("works");
 	}

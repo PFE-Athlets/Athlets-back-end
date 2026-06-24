@@ -55,16 +55,20 @@ CREATE TABLE User_Account (
     password VARCHAR(255) NOT NULL,
     account_status VARCHAR(10) NOT NULL DEFAULT 'Active',
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    access_level INT NOT NULL,
+    access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete
     CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive')),
     CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)) 
-    -- 1: Administrator, 2: Coach, 3: Athlete
+    CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
 );
 
 CREATE TABLE Administrator (
     user_id INT PRIMARY KEY,
+    access_level INT NOT NULL DEFAULT 1,
     title VARCHAR(50),
-    CONSTRAINT fk_admin_user FOREIGN KEY (user_id) REFERENCES User_Account(id) ON DELETE CASCADE
+    
+    CONSTRAINT chk_is_admin CHECK (access_level = 1), 
+    CONSTRAINT fk_admin_user FOREIGN KEY (user_id, access_level) 
+        REFERENCES User_Account(id, access_level) ON DELETE CASCADE
 );
 
 -- ==========================================
@@ -80,10 +84,14 @@ CREATE TABLE Team (
 
 CREATE TABLE Coach (
     user_id INT PRIMARY KEY,
+    access_level INT NOT NULL DEFAULT 2,
     sport_id INT NOT NULL,
     team_id INT NOT NULL,
     title VARCHAR(50),
-    CONSTRAINT fk_coach_user FOREIGN KEY (user_id) REFERENCES User_Account(id) ON DELETE CASCADE,
+    
+    CONSTRAINT chk_is_coach CHECK (access_level = 2), 
+    CONSTRAINT fk_coach_user FOREIGN KEY (user_id, access_level) 
+        REFERENCES User_Account(id, access_level) ON DELETE CASCADE,
     CONSTRAINT fk_coach_sport FOREIGN KEY (sport_id) REFERENCES Sport(id),
     CONSTRAINT fk_coach_team FOREIGN KEY (team_id) REFERENCES Team(id)
 );
@@ -94,6 +102,7 @@ CREATE TABLE Coach (
 
 CREATE TABLE Athlete (
     user_id INT PRIMARY KEY,
+    access_level INT NOT NULL DEFAULT 3,
     birth_date DATE NOT NULL,
     gender VARCHAR(10) NOT NULL,
     height_meters INT,
@@ -101,7 +110,10 @@ CREATE TABLE Athlete (
     dominant_arm VARCHAR(8),
     dominant_leg VARCHAR(6),
     injury_history TEXT,
-    CONSTRAINT fk_athlete_user FOREIGN KEY (user_id) REFERENCES User_Account(id) ON DELETE CASCADE,
+    
+    CONSTRAINT chk_is_athlete CHECK (access_level = 3), 
+    CONSTRAINT fk_athlete_user FOREIGN KEY (user_id, access_level) 
+        REFERENCES User_Account(id, access_level) ON DELETE CASCADE,
     CONSTRAINT chk_gender CHECK (gender IN ('Female', 'Male')),
     CONSTRAINT chk_arm CHECK (dominant_arm IN ('Right', 'Left')),
     CONSTRAINT chk_leg CHECK (dominant_leg IN ('Right', 'Left'))
@@ -142,6 +154,7 @@ CREATE TABLE Test (
 );
 
 CREATE TABLE Result (
+    id SERIAL PRIMARY KEY,
     test_id INT NOT NULL,
     athlete_id INT NOT NULL,
     result_value VARCHAR(10) NOT NULL,
@@ -149,7 +162,7 @@ CREATE TABLE Result (
     photo_proof TEXT,
     status VARCHAR(25) NOT NULL DEFAULT 'Pending approval',
     comment_text TEXT,
-    PRIMARY KEY (test_id, athlete_id),
+    test_date DATE NOT NULL DEFAULT CURRENT_DATE, 
     CONSTRAINT fk_result_test FOREIGN KEY (test_id) REFERENCES Test(id) ON DELETE CASCADE,
     CONSTRAINT fk_result_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_result_status CHECK (status IN ('Accepted', 'Rejected', 'Pending approval'))
