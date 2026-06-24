@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface AuthUserRepository extends JpaRepository<AuthUser, Long> {
 
-	Optional<AuthUser> findByName(String name);
+	Optional<AuthUser> findByUsername(String username);
 
-	boolean existsByName(String name);
+	boolean existsByUsername(String username);
 }

@@ -37,7 +37,7 @@ public class AuthService {
 	 * @return the authenticated user object if an account is associated with the credentials
 	 */
 	public Optional<AuthUser> verifyAndFetchUser(String username, String rawPassword) {
-		Optional<AuthUser> user = userRepository.findByName(username);
+		Optional<AuthUser> user = userRepository.findByUsername(username);
 
 		if (user.isEmpty()) {
 			return Optional.empty();
