@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +25,8 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	private record AuthCredentials(String username, String password) {
+	public AuthController(AuthService authService) {
+		this.authService = authService;
 	}
 
 	/**
@@ -50,7 +53,7 @@ public class AuthController {
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		Optional<UserAccount> UserAccountOpt = authService.verifyAndFetchUser(credentials.username, credentials.password);
+		Optional<AuthUser> authUserOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
 
 		if (UserAccountOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
