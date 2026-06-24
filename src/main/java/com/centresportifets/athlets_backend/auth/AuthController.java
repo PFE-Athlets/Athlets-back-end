@@ -25,10 +25,6 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	public AuthController(AuthService authService) {
-		this.authService = authService;
-	}
-
 	/**
 	 * Handles the entire login flow of the application
 	 *
@@ -53,14 +49,14 @@ public class AuthController {
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		Optional<AuthUser> authUserOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
+		Optional<UserAccount> userAccountOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
 
-		if (UserAccountOpt.isEmpty()) {
+		if (userAccountOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body("Invalid username or password");
 		}
 
-		authService.loginUser(UserAccountOpt.get(), request, response);
+		authService.loginUser(userAccountOpt.get(), request, response);
 
 		return ResponseEntity.ok("works");
 	}

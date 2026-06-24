@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +27,7 @@ public class ResultController {
 
     @PostMapping("/assign")
     public ResponseEntity<Void> assignTestToAthletes(@RequestBody TestAssignmentRequest request, Authentication auth) {
-        resultService.assignTest(request);
+        resultService.assignTest(request, auth);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

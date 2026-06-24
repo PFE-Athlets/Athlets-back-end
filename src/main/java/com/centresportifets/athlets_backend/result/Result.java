@@ -1,8 +1,7 @@
 package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
-import com.centresportifets.athlets_backend.athlete.Athlete; // Assuming this package structure
-import com.centresportifets.athlets_backend.auth.UserAccount;
+import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,9 +22,9 @@ public class Result {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "athlete_id", nullable = false)
-    private UserAccount athlete;
+    private Athlete athlete;
 
-    @Column(name = "result_value", length = 10, nullable = false)
+    @Column(name = "result_value", length = 10)
     private String resultValue;
 
     @Column(name = "video_proof", columnDefinition = "TEXT")

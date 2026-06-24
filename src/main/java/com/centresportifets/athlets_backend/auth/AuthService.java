@@ -15,9 +15,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import com.centresportifets.athlets_backend.auth.userTypes.UserType;
+
 @RequiredArgsConstructor
+@Component("authService")
 @Service
 public class AuthService {
 	private final AuthRepository userRepository;
@@ -83,5 +87,27 @@ public class AuthService {
 	 */
 	public void logoutUser(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
 		logoutHandler.logout(request, response, authentication);
+	}
+
+	public boolean checkIfUserIsAuthenticatedUser(Long userId, Authentication auth) {
+		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+		UserAccount authenticatedUser = userOpt.get();
+		return authenticatedUser.getId().equals(userId);
+	}
+
+	public boolean checkIfUserIsAuthenticatedUser(UserAccount user, Authentication auth) {
+		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
+	}
+
+	public boolean checkPermission(Authentication auth, UserType userType) {
+		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+		UserAccount authenticatedUser = userOpt.get();
+		return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
 	}
 }

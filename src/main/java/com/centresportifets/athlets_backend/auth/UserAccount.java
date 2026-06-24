@@ -39,5 +39,5 @@ public class UserAccount {
     private LocalDate accountCreationDate = LocalDate.now();
 
     @Column(name = "access_level", nullable = false)
-    private Integer accessLevel;
+    private int accessLevel;
 }

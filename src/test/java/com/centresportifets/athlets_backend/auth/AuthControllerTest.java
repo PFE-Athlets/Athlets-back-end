@@ -42,7 +42,7 @@ class AuthControllerTest {
 
     @Test
     void loginUser_WithValidCredentials_ReturnsOk() {
-        AuthUser mockUser = mock(AuthUser.class);
+        UserAccount mockUser = mock(UserAccount.class);
         
         when(authService.verifyAndFetchUser("testUser", "testPassword"))
                 .thenReturn(Optional.of(mockUser));
