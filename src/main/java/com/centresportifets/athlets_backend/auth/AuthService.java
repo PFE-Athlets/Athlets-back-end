@@ -111,4 +111,14 @@ public class AuthService {
 		UserAccount authenticatedUser = userOpt.get();
 		return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
 	}
+
+	public UserType getAuthenticatedUserType(Authentication auth){
+		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("User not found")).getAccessLevel();
+		switch (permissionLevel){
+			case 3: return UserType.ADMIN;
+			case 2: return UserType.COACH;
+			case 1: 
+			default: return UserType.ATHLETE;
+		}
+	}
 }

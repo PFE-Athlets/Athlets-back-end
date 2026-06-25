@@ -3,12 +3,15 @@ package com.centresportifets.athlets_backend.result;
 import com.centresportifets.athlets_backend.auth.AuthService;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
 import com.centresportifets.athlets_backend.auth.userTypes.AthleteRepository;
+import com.centresportifets.athlets_backend.auth.userTypes.UserType;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
@@ -106,6 +109,16 @@ public class ResultService {
         String status = approved ? ResultStatus.APPROVED.getStatus() : ResultStatus.REJECTED.getStatus();
         
         result.setStatus(status);
+    }
+
+    public Page<Result> getTestResults(Authentication auth, Pageable pageable){
+        UserType currentType = authService.getAuthenticatedUserType(auth);
+
+        switch (currentType){
+            case ADMIN: break;
+            case COACH: break;
+            case ATHLETE: break;
+        }
     }
 
     private boolean isMissing(String proofString) {
