@@ -34,11 +34,11 @@ public class Result {
     private String photoProof;
 
     @Column(nullable = false, length = 25)
-    private String status = "Pending approval"; // Updated to match your SQL DEFAULT value
+    private String status = "Pending approval";
 
     @Column(name = "comment_text", columnDefinition = "TEXT")
     private String commentText;
 
     @Column(name = "test_date", nullable = false)
-    private LocalDate testDate = LocalDate.now(); // Highly recommended for tracking multiple attempts over time
+    private LocalDate testDate = LocalDate.now();
 }

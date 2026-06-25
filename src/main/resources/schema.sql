@@ -150,22 +150,23 @@ CREATE TABLE Test (
     name VARCHAR(20) NOT NULL,
     unit_of_measure VARCHAR(10) NOT NULL,
     protocol TEXT,
-    proof_needed VARCHAR(20)
+    proof_needed VARCHAR(20) NOT NULL DEFAULT 'None',
+    CONSTRAINT chk_test_proof_needed CHECK (proof_needed IN ('None', 'Photo', 'Video', 'Both'))
 );
 
 CREATE TABLE Result (
     id SERIAL PRIMARY KEY,
     test_id INT NOT NULL,
     athlete_id INT NOT NULL,
-    result_value VARCHAR(10) NOT NULL,
+    result_value VARCHAR(10),
     video_proof TEXT,
     photo_proof TEXT,
-    status VARCHAR(25) NOT NULL DEFAULT 'Pending approval',
+    status VARCHAR(25) NOT NULL DEFAULT 'Assigned',
     comment_text TEXT,
     test_date DATE NOT NULL DEFAULT CURRENT_DATE, 
     CONSTRAINT fk_result_test FOREIGN KEY (test_id) REFERENCES Test(id) ON DELETE CASCADE,
     CONSTRAINT fk_result_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
-    CONSTRAINT chk_result_status CHECK (status IN ('Accepted', 'Rejected', 'Pending approval'))
+    CONSTRAINT chk_result_status CHECK (status IN ('Approved', 'Rejected', 'Pending approval', 'Assigned'))
 );
 
 CREATE TABLE Test_Sport (

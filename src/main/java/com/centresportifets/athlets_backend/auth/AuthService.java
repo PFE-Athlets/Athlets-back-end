@@ -102,7 +102,8 @@ public class AuthService {
 		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
 	}
 
-	public boolean checkPermission(Authentication auth, UserType userType) {
+	public boolean checkPermission(Authentication auth, String userTypeName) {
+		UserType userType = UserType.valueOf(userTypeName);
 		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
 		if (userOpt.isEmpty()) {
 			return false;
