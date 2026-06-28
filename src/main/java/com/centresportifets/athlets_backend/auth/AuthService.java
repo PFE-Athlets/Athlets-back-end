@@ -89,6 +89,9 @@ public class AuthService {
 		logoutHandler.logout(request, response, authentication);
 	}
 
+	/**
+	 *  Checks if the userId provided (like the one for completing a test) corresponds to the user connected to the backend
+	 */
 	public boolean checkIfUserIsAuthenticatedUser(Long userId, Authentication auth) {
 		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
 		if (userOpt.isEmpty()) {
@@ -102,7 +105,10 @@ public class AuthService {
 		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
 	}
 
-	public boolean checkPermission(Authentication auth, String userTypeName) {
+	/**
+	 *  Verify that the authenticated user has the appropriate permission for an access 
+	 */
+	public boolean hasPermission(Authentication auth, String userTypeName) {
 		UserType userType = UserType.valueOf(userTypeName);
 		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
 		if (userOpt.isEmpty()) {
@@ -112,6 +118,9 @@ public class AuthService {
 		return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
 	}
 
+	/**
+	 *  Retrieves the usertype of the current authenticated user
+	 */
 	public UserType getAuthenticatedUserType(Authentication auth){
 		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("User not found")).getAccessLevel();
 		switch (permissionLevel){

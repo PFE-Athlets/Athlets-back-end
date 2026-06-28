@@ -1,11 +1,15 @@
 package com.centresportifets.athlets_backend.auth.userTypes;
 
 import com.centresportifets.athlets_backend.auth.UserAccount;
+import com.centresportifets.athlets_backend.sport.AthleteTeam;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -34,6 +38,9 @@ public class Athlete extends UserAccount {
 
     @Column(name = "injury_history")
     private String injuryHistory;
+
+    @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AthleteTeam> athleteTeams = new ArrayList<>();
 
     public Athlete() {
         this.setAccessLevel(3);

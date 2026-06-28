@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AthleteRepository extends JpaRepository<Athlete, Long> {
 	List<Athlete> findAllByUsernameIn(List<String> usernames);
+
+	List<Athlete> findByAthleteTeamsTeamId(Long teamId);
 }

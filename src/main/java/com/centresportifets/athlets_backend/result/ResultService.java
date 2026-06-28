@@ -2,6 +2,7 @@ package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
 import com.centresportifets.athlets_backend.auth.userTypes.AthleteRepository;
+import com.centresportifets.athlets_backend.auth.userTypes.Coach;
+import com.centresportifets.athlets_backend.auth.userTypes.CoachRepository;
 import com.centresportifets.athlets_backend.auth.userTypes.UserType;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
@@ -26,6 +29,8 @@ public class ResultService {
     private final AuthService authService;
 
     private final AthleteRepository athleteRepository;
+
+    private final CoachRepository coachRepository;
 
     private final PhysicalTestRepository physicalTestRepository;
 
@@ -48,7 +53,7 @@ public class ResultService {
     public void submitAthleteResult(TestResultSubmission resultSubmission, Authentication auth) {
         Result result = resultRepository.findById(resultSubmission.getId()).orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
 
-        if(authService.checkIfUserIsAuthenticatedUser(result.getAthlete(), auth)){
+        if(!authService.checkIfUserIsAuthenticatedUser(result.getAthlete(), auth)){
             throw new AccessDeniedException("You are not authorized to submit this result.");
         }
 
@@ -115,9 +120,24 @@ public class ResultService {
         UserType currentType = authService.getAuthenticatedUserType(auth);
 
         switch (currentType){
-            case ADMIN: break;
-            case COACH: break;
-            case ATHLETE: break;
+            case ADMIN: return resultRepository.findAll(pageable);
+            case COACH: 
+                Coach coach = coachRepository.findByUsername(auth.getName())
+                        .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
+
+                List<Athlete> teamAthletes = athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId());
+
+                if (teamAthletes.isEmpty()) {
+                    return Page.empty(pageable);
+                }
+
+                List<Long> athleteIds = teamAthletes.stream()
+                        .map(athlete -> athlete.getId())
+                        .collect(Collectors.toList());
+
+                return resultRepository.findByAthleteIdIn(athleteIds, pageable);
+            case ATHLETE: 
+            default: return resultRepository.findByAthleteUsername(auth.getName(), pageable);
         }
     }
 

@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS Result CASCADE;
 DROP TABLE IF EXISTS Test CASCADE;
 DROP TABLE IF EXISTS Test_Battery CASCADE;
-DROP TABLE IF EXISTS Athlete_Sport CASCADE;
+DROP TABLE IF EXISTS Athlete_Team CASCADE; -- Updated table name
 DROP TABLE IF EXISTS Athlete CASCADE;
 DROP TABLE IF EXISTS Coach CASCADE;
 DROP TABLE IF EXISTS Team CASCADE;
@@ -57,7 +57,7 @@ CREATE TABLE User_Account (
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
     access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete
     CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive')),
-    CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)) 
+    CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)),
     CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
 );
 
@@ -119,17 +119,18 @@ CREATE TABLE Athlete (
     CONSTRAINT chk_leg CHECK (dominant_leg IN ('Right', 'Left'))
 );
 
--- Intermediary table mapping Athletes to Sports with optional Position/Discipline
-CREATE TABLE Athlete_Sport (
+CREATE TABLE Athlete_Team (
     athlete_id INT NOT NULL,
-    sport_id INT NOT NULL,
+    team_id INT NOT NULL,
     position_id INT,
     discipline_id INT,
-    PRIMARY KEY (athlete_id, sport_id),
-    CONSTRAINT fk_athlete_sport_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_athlete_sport_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE,
-    CONSTRAINT fk_athlete_sport_position FOREIGN KEY (position_id) REFERENCES Position(id),
-    CONSTRAINT fk_athlete_sport_discipline FOREIGN KEY (discipline_id) REFERENCES Discipline(id)
+    
+    PRIMARY KEY (athlete_id, team_id),
+    
+    CONSTRAINT fk_athlete_team_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_athlete_team_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE,
+    CONSTRAINT fk_athlete_team_position FOREIGN KEY (position_id) REFERENCES Position(id) ON DELETE SET NULL,
+    CONSTRAINT fk_athlete_team_discipline FOREIGN KEY (discipline_id) REFERENCES Discipline(id) ON DELETE SET NULL
 );
 
 -- ==========================================
