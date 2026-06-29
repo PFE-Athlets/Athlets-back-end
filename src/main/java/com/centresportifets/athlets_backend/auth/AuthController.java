@@ -2,6 +2,7 @@ package com.centresportifets.athlets_backend.auth;
 
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,14 +46,14 @@ public class AuthController {
 	 *         data
 	 */
 	@PostMapping("/login")
-	public ResponseEntity<AuthUser> loginUser(
+	public ResponseEntity<?> loginUser(
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		Optional<UserAccount> userAccountOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
 
 		if (userAccountOpt.isEmpty()) {
-			throw new IllegalArgumentException("Invalid username or password");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
 		}
 
 		authService.loginUser(userAccountOpt.get(), request, response);
