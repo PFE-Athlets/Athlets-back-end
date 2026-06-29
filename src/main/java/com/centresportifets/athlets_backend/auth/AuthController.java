@@ -2,7 +2,6 @@ package com.centresportifets.athlets_backend.auth;
 
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+import com.centresportifets.athlets_backend.auth.dto.AuthUser;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,20 +45,19 @@ public class AuthController {
 	 *         data
 	 */
 	@PostMapping("/login")
-	public ResponseEntity<?> loginUser(
+	public ResponseEntity<AuthUser> loginUser(
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		Optional<UserAccount> userAccountOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
 
 		if (userAccountOpt.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Invalid username or password");
+			throw new IllegalArgumentException("Invalid username or password");
 		}
 
 		authService.loginUser(userAccountOpt.get(), request, response);
 
-		return ResponseEntity.ok("works");
+		return ResponseEntity.ok(new AuthUser(userAccountOpt.get()));
 	}
 
 	/**
