@@ -24,7 +24,7 @@ import com.centresportifets.athlets_backend.auth.userTypes.UserType;
 @Component("authService")
 @Service
 public class AuthService {
-	private final AuthRepository userRepository;
+	private final UserAccountRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final SecurityContextRepository securityContextRepository =

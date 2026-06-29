@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface AuthRepository extends JpaRepository<UserAccount, Long> {
+interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
 
 	Optional<UserAccount> findByUsername(String username);
 
