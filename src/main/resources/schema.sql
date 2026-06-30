@@ -149,7 +149,7 @@ CREATE TABLE Test_Battery (
 CREATE TABLE Test (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
-    unit_of_measure VARCHAR(10) NOT NULL,
+    unit_of_measure VARCHAR(20) NOT NULL,
     protocol TEXT,
     proof_needed VARCHAR(20) NOT NULL DEFAULT 'None',
     CONSTRAINT chk_test_proof_needed CHECK (proof_needed IN ('None', 'Photo', 'Video', 'Both'))
