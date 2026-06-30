@@ -1,5 +1,7 @@
 package com.centresportifets.athlets_backend.sport;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,7 +21,7 @@ public class SportController {
     private final SportService sportService;
 
     @GetMapping("/teams")
-    public ResponseEntity<?> getTeams(Authentication auth) {
+    public ResponseEntity<List<String>> getTeams(Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(sportService.getTeamNames(auth));
     }
 }

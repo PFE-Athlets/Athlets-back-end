@@ -40,22 +40,7 @@ public class AthleteService {
         Team team = teamRepository.findByName(teamName)
             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamName));
 
-        Athlete athlete = new Athlete();
-        athlete.setFirstName(request.getFirstName());
-        athlete.setLastName(request.getLastName());
-        athlete.setEmail(request.getEmail());
-        athlete.setPhone(request.getPhone());
-        athlete.setUsername(request.getUsername());
-        athlete.setPassword(passwordEncoder.encode("ChangeMe123!"));
-        athlete.setAccountStatus(request.getAccountStatus());
-        athlete.setBirthDate(request.getBirthDate());
-        athlete.setGender(request.getGender());
-        athlete.setHeightMeters(request.getHeightMeters());
-        athlete.setWeightKg(request.getWeightKg());
-        athlete.setDominantArm(request.getDominantArm());
-        athlete.setDominantLeg(request.getDominantLeg());
-        athlete.setInjuryHistory(request.getInjuryHistory());
-        athlete.setAccessLevel(UserType.ATHLETE.getPermissionLevel());
+        Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
         athlete = athleteRepository.save(athlete);
 
         AthleteTeam athleteTeam = new AthleteTeam();
