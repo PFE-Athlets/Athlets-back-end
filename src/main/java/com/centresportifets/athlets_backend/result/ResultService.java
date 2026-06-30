@@ -1,11 +1,11 @@
 package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,6 +21,9 @@ import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -35,6 +38,8 @@ public class ResultService {
     private final PhysicalTestRepository physicalTestRepository;
 
     private final ResultRepository resultRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(ResultService.class);
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
     public void assignTest(TestAssignmentRequest request){
@@ -116,11 +121,12 @@ public class ResultService {
         result.setStatus(status);
     }
 
-    public Page<Result> getTestResults(Authentication auth, Pageable pageable){
+    public List<Result> getTestResults(Authentication auth){
         UserType currentType = authService.getAuthenticatedUserType(auth);
-
+        log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
         switch (currentType){
-            case ADMIN: return resultRepository.findAll(pageable);
+            case ADMIN: log.info("Admin user {} is retrieving all test results", auth.getName());
+            return resultRepository.findAll();
             case COACH: 
                 Coach coach = coachRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
@@ -128,16 +134,18 @@ public class ResultService {
                 List<Athlete> teamAthletes = athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId());
 
                 if (teamAthletes.isEmpty()) {
-                    return Page.empty(pageable);
+                    return Collections.emptyList();
                 }
 
                 List<Long> athleteIds = teamAthletes.stream()
                         .map(athlete -> athlete.getId())
                         .collect(Collectors.toList());
 
-                return resultRepository.findByAthleteIdIn(athleteIds, pageable);
+                return resultRepository.findByAthleteIdIn(athleteIds);
             case ATHLETE: 
-            default: return resultRepository.findByAthleteUsername(auth.getName(), pageable);
+                        log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
+        log.info("tests: " +resultRepository.findByAthleteUsername(auth.getName()));
+            default:    return resultRepository.findByAthleteUsername(auth.getName());
         }
     }
 

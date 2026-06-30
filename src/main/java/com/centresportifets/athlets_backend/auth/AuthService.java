@@ -122,7 +122,7 @@ public class AuthService {
 	 *  Retrieves the usertype of the current authenticated user
 	 */
 	public UserType getAuthenticatedUserType(Authentication auth){
-		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("User not found")).getAccessLevel();
+		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("No user logged in the backend")).getAccessLevel();
 		switch (permissionLevel){
 			case 1: return UserType.ADMIN;
 			case 2: return UserType.COACH;
