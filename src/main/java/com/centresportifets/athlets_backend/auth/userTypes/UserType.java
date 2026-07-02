@@ -1,6 +1,7 @@
 package com.centresportifets.athlets_backend.auth.userTypes;
 
 public enum UserType {
+    INVALID(0),
     ADMIN(1),
     COACH(2),
     ATHLETE(3);

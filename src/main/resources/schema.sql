@@ -26,14 +26,18 @@ CREATE TABLE Position (
     id SERIAL PRIMARY KEY,
     sport_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
-    CONSTRAINT fk_position_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE
+
+    CONSTRAINT fk_position_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE,
+    CONSTRAINT uq_position_sport_name UNIQUE (sport_id, name)
 );
 
 CREATE TABLE Discipline (
     id SERIAL PRIMARY KEY,
     sport_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
-    CONSTRAINT fk_discipline_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE
+
+    CONSTRAINT fk_discipline_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE,
+    CONSTRAINT uq_discipline_sport_name UNIQUE (sport_id, name)
 );
 
 CREATE TABLE Group_Table (
