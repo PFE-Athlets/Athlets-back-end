@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.athlete.dto;
+package com.centresportifets.athlets_backend.user.athlete.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;

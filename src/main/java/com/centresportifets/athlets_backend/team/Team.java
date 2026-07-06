@@ -1,4 +1,6 @@
-package com.centresportifets.athlets_backend.sport;
+package com.centresportifets.athlets_backend.team;
+
+import com.centresportifets.athlets_backend.sport.Sport;
 
 import jakarta.persistence.*;
 import lombok.Getter;

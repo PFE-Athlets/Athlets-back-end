@@ -10,17 +10,18 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
-import com.centresportifets.athlets_backend.auth.userTypes.AthleteRepository;
-import com.centresportifets.athlets_backend.auth.userTypes.Coach;
-import com.centresportifets.athlets_backend.auth.userTypes.CoachRepository;
-import com.centresportifets.athlets_backend.auth.userTypes.UserType;
+
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
+import com.centresportifets.athlets_backend.user.coach.Coach;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

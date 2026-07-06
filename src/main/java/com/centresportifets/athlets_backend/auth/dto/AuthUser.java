@@ -1,6 +1,6 @@
 package com.centresportifets.athlets_backend.auth.dto;
 
-import com.centresportifets.athlets_backend.auth.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccount;
 
 import lombok.Data;
 

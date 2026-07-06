@@ -1,6 +1,6 @@
-package com.centresportifets.athlets_backend.sport;
+package com.centresportifets.athlets_backend.team;
 
-import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;

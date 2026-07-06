@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.auth;
+package com.centresportifets.athlets_backend.user;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
 import com.centresportifets.athlets_backend.auth.dto.AuthUser;
+import com.centresportifets.athlets_backend.user.UserAccount;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;

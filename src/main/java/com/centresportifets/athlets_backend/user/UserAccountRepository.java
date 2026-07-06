@@ -1,10 +1,10 @@
-package com.centresportifets.athlets_backend.auth;
+package com.centresportifets.athlets_backend.user;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
+public interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
 
 	Optional<UserAccount> findByUsername(String username);
 

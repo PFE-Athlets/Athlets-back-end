@@ -1,6 +1,7 @@
-package com.centresportifets.athlets_backend.auth.userTypes;
+package com.centresportifets.athlets_backend.user.administrator;
 
-import com.centresportifets.athlets_backend.auth.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccount;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -18,7 +18,9 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import com.centresportifets.athlets_backend.auth.userTypes.UserType;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
+import com.centresportifets.athlets_backend.user.UserType;
 
 @RequiredArgsConstructor
 @Component("authService")

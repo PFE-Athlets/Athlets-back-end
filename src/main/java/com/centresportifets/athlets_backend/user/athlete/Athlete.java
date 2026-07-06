@@ -1,7 +1,7 @@
-package com.centresportifets.athlets_backend.auth.userTypes;
+package com.centresportifets.athlets_backend.user.athlete;
 
-import com.centresportifets.athlets_backend.auth.UserAccount;
-import com.centresportifets.athlets_backend.sport.AthleteTeam;
+import com.centresportifets.athlets_backend.team.AthleteTeam;
+import com.centresportifets.athlets_backend.user.UserAccount;
 
 import jakarta.persistence.*;
 import lombok.Data;

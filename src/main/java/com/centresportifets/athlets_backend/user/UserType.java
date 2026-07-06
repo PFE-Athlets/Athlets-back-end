@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.auth.userTypes;
+package com.centresportifets.athlets_backend.user;
 
 public enum UserType {
     INVALID(0),

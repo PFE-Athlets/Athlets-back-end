@@ -1,7 +1,7 @@
 package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
-import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
 
 import jakarta.persistence.*;
 import lombok.Data;

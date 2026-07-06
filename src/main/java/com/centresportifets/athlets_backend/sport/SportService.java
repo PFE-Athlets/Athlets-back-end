@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
-import com.centresportifets.athlets_backend.auth.userTypes.CoachRepository;
-import com.centresportifets.athlets_backend.auth.userTypes.UserType;
+import com.centresportifets.athlets_backend.team.TeamRepository;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+
 
 import lombok.RequiredArgsConstructor;
 

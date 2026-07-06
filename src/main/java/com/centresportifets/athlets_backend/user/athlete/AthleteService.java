@@ -1,19 +1,17 @@
-package com.centresportifets.athlets_backend.athlete;
+package com.centresportifets.athlets_backend.user.athlete;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.centresportifets.athlets_backend.athlete.dto.AthleteCreateRequest;
 import com.centresportifets.athlets_backend.auth.AuthService;
-import com.centresportifets.athlets_backend.auth.userTypes.Athlete;
-import com.centresportifets.athlets_backend.auth.userTypes.AthleteRepository;
-import com.centresportifets.athlets_backend.auth.userTypes.CoachRepository;
-import com.centresportifets.athlets_backend.auth.userTypes.UserType;
-import com.centresportifets.athlets_backend.sport.AthleteTeam;
-import com.centresportifets.athlets_backend.sport.Team;
-import com.centresportifets.athlets_backend.sport.TeamRepository;
+import com.centresportifets.athlets_backend.team.AthleteTeam;
+import com.centresportifets.athlets_backend.team.Team;
+import com.centresportifets.athlets_backend.team.TeamRepository;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 
 import lombok.RequiredArgsConstructor;
 
