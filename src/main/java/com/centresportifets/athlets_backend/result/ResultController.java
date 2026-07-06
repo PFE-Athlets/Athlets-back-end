@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
+import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,7 +54,7 @@ public class ResultController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Result>> getTestResults(Authentication auth) {
+    public ResponseEntity<List<TestData>> getTestResults(Authentication auth) {
         return ResponseEntity.ok(resultService.getTestResults(auth));
     }
 }

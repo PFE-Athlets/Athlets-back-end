@@ -19,6 +19,7 @@ import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
 import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
+import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
 
 import org.slf4j.Logger;
@@ -121,12 +122,12 @@ public class ResultService {
         result.setStatus(status);
     }
 
-    public List<Result> getTestResults(Authentication auth){
+    public List<TestData> getTestResults(Authentication auth){
         UserType currentType = authService.getAuthenticatedUserType(auth);
         log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
         switch (currentType){
             case ADMIN: log.info("Admin user {} is retrieving all test results", auth.getName());
-            return resultRepository.findAll();
+                return resultRepository.findAll().stream().map(TestData::new).collect(Collectors.toList());
             case COACH: 
                 Coach coach = coachRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
@@ -141,11 +142,13 @@ public class ResultService {
                         .map(athlete -> athlete.getId())
                         .collect(Collectors.toList());
 
-                return resultRepository.findByAthleteIdIn(athleteIds);
+                return resultRepository.findByAthleteIdIn(athleteIds).stream()
+                        .map(TestData::new)
+                        .collect(Collectors.toList());
             case ATHLETE: 
-                        log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
-        log.info("tests: " +resultRepository.findByAthleteUsername(auth.getName()));
-            default:    return resultRepository.findByAthleteUsername(auth.getName());
+            default:    return resultRepository.findByAthleteUsername(auth.getName()).stream()
+                            .map(TestData::new)
+                            .collect(Collectors.toList());
         }
     }
 
