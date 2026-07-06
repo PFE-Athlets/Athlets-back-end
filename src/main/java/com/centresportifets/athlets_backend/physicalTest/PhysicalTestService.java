@@ -9,15 +9,13 @@ import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateR
 import com.centresportifets.athlets_backend.sport.Sport;
 import com.centresportifets.athlets_backend.sport.SportRepository;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class PhysicalTestService {
     private final PhysicalTestRepository physicalTestRepository;
     private final SportRepository sportRepository;
-
-    public PhysicalTestService(PhysicalTestRepository physicalTestRepository, SportRepository sportRepository) {
-        this.physicalTestRepository = physicalTestRepository;
-        this.sportRepository = sportRepository;
-    }
 
     public List<PhysicalTest> getPhysicalTests(){
         return physicalTestRepository.findAll();

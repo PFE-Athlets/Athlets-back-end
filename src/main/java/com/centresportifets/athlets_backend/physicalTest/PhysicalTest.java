@@ -30,10 +30,9 @@ public class PhysicalTest {
     @Column(name = "name", nullable = false, length = 20)
     private String name;
 
-    @Column(name = "unit_of_mesure", nullable = false, length = 10)
+    @Column(name = "unit_of_measure", nullable = false, length = 10)
     private String unit;
 
-    @Lob
     @Column(name = "protocol")
     private String protocol;
 
