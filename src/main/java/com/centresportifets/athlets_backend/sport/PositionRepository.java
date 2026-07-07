@@ -1,5 +1,7 @@
 package com.centresportifets.athlets_backend.sport;
 
-public class PositionRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PositionRepository extends JpaRepository<Position, Long> {
     
 }

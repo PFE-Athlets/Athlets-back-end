@@ -1,43 +1,28 @@
 package com.centresportifets.athlets_backend.sport;
-import java.util.HashSet;
-import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 @Data
-@Table(name = "test")
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "discipline", uniqueConstraints = {
+    @UniqueConstraint(name = "uq_discipline_sport_name", columnNames = {"sport_id", "name"})
+})
 public class Discipline {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "unit_of_measure", nullable = false, length = 10)
-    private String unit;
-
-    @Column(name = "protocol")
-    private String protocol;
-
-    @Column(name = "proof_needed")
-    private String proof;
-
-    @ManyToMany
-    @JoinTable(
-        name = "Test_Sport",
-        joinColumns = @JoinColumn(name = "test_id"),
-        inverseJoinColumns = @JoinColumn(name = "sport_id")
-    )
-    private Set<Sport> sports = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sport_id", nullable = false, foreignKey = @ForeignKey(name = "fk_discipline_sport"))
+    private Sport sport;
 }
