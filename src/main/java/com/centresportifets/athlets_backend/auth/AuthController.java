@@ -1,7 +1,13 @@
 package com.centresportifets.athlets_backend.auth;
 
+import com.centresportifets.athlets_backend.auth.dto.ActivateAccountRequest;
+import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+import com.centresportifets.athlets_backend.auth.dto.GenerateActivationTokenRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.Optional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -9,12 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Tag(name = "Authentication controller", description = "Handles basic user authentication flow and account creation")
 @RestController
@@ -60,21 +60,55 @@ public class AuthController {
 
 		authService.loginUser(authUserOpt.get(), request, response);
 
-		return ResponseEntity.ok("works");
+		return ResponseEntity.ok(Map.of("message", "Connexion réussie."));
 	}
 
 	/**
-	 * Handles the logout flow of the application
+	 * Temporary endpoint used to generate an activation token for an existing account.
+	 * This should later be replaced by automatic token generation during athlete creation.
 	 *
-	 * @param authentication the current authentication object, used to identify the
-	 *                       user session to be terminated
-	 * @param request        the incoming HTTP request used to identify the session
-	 *                       to be terminated
-	 * @param response       the outgoing HTTP response where the JSESSIONID cookie
-	 *                       is removed upon
-	 *                       success
-	 * @return a {@link ResponseEntity} returning {@code 200 OK} with a
-	 *         placeholder text on success.
+	 * @param request Request containing the username of the account to activate
+	 * @return generated activation link
+	 */
+	@PostMapping("/dev/generate-activation-token")
+	public ResponseEntity<?> generateActivationToken(
+			@RequestBody GenerateActivationTokenRequest request) {
+		try {
+			String activationLink = authService.generateActivationTokenForUsername(request.getUsername());
+
+			return ResponseEntity.ok(Map.of(
+					"message", "Lien d'activation généré avec succès.",
+					"activationLink", activationLink
+			));
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Activates an account using a valid activation token.
+	 *
+	 * @param request Request containing the activation token and new password
+	 * @return success or error response
+	 */
+	@PostMapping("/activate")
+	public ResponseEntity<?> activateAccount(@RequestBody ActivateAccountRequest request) {
+		try {
+			authService.activateAccount(request);
+
+			return ResponseEntity.ok(Map.of("message", "Compte activé avec succès."));
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Handles the logout flow of the application.
+	 *
+	 * @param authentication the current authentication object
+	 * @param request the incoming HTTP request
+	 * @param response the outgoing HTTP response
+	 * @return a {@link ResponseEntity} returning {@code 200 OK}
 	 */
 	@PostMapping("/logout")
 	public ResponseEntity<?> logoutUser(
