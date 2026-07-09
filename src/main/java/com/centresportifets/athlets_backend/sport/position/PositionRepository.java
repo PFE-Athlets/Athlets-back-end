@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.sport;
+package com.centresportifets.athlets_backend.sport.position;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

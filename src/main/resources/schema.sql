@@ -124,19 +124,37 @@ CREATE TABLE Athlete (
 );
 
 CREATE TABLE Athlete_Team (
-    athlete_id INT NOT NULL,
-    team_id INT NOT NULL,
-    position_id INT,
-    discipline_id INT,
-    
-    PRIMARY KEY (athlete_id, team_id),
-    
-    CONSTRAINT fk_athlete_team_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_athlete_team_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE,
-    CONSTRAINT fk_athlete_team_position FOREIGN KEY (position_id) REFERENCES Position(id) ON DELETE SET NULL,
-    CONSTRAINT fk_athlete_team_discipline FOREIGN KEY (discipline_id) REFERENCES Discipline(id) ON DELETE SET NULL
+     athlete_id INT NOT NULL,
+     team_id INT NOT NULL,
+     
+     PRIMARY KEY (athlete_id, team_id),
+     CONSTRAINT fk_athlete_team_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
+     CONSTRAINT fk_athlete_team_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE
 );
 
+CREATE TABLE Athlete_Team_Position (
+    id SERIAL PRIMARY KEY,
+    athlete_id INT NOT NULL,
+    team_id INT NOT NULL,
+    position_id INT NOT NULL,
+    
+    CONSTRAINT fk_atp_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_atp_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE,
+    CONSTRAINT fk_atp_position FOREIGN KEY (position_id) REFERENCES Position(id) ON DELETE CASCADE,
+    CONSTRAINT uq_athlete_team_position UNIQUE (athlete_id, team_id, position_id)
+);
+
+CREATE TABLE Athlete_Team_Discipline (
+    id SERIAL PRIMARY KEY,
+    athlete_id INT NOT NULL,
+    team_id INT NOT NULL,
+    discipline_id INT NOT NULL,
+    
+    CONSTRAINT fk_atd_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_atd_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE,
+    CONSTRAINT fk_atd_discipline FOREIGN KEY (discipline_id) REFERENCES Discipline(id) ON DELETE CASCADE,
+    CONSTRAINT uq_athlete_team_discipline UNIQUE (athlete_id, team_id, discipline_id)
+);
 -- ==========================================
 -- 5. TESTING & PERFORMANCE
 -- ==========================================

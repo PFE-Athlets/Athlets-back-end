@@ -1,4 +1,6 @@
-package com.centresportifets.athlets_backend.sport;
+package com.centresportifets.athlets_backend.sport.position;
+
+import com.centresportifets.athlets_backend.sport.Sport;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,9 +11,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "position", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_position_sport_name", columnNames = {"sport_id", "name"})
-})
+@Table(name = "position")
 public class Position {
 
     @Id
@@ -22,7 +22,7 @@ public class Position {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "sport_id", nullable = false, foreignKey = @ForeignKey(name = "fk_position_sport"))
     private Sport sport;
 }

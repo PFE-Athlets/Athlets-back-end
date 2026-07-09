@@ -124,15 +124,27 @@ INSERT INTO Athlete (user_id, access_level, birth_date, gender, height_meters, w
 ((SELECT id FROM User_Account WHERE username = 'trackUser2'), 3, '2003-07-22', 'Female', 1, 61.2, 'Left', 'Right', 'Slight hamstring pull 2025'),
 ((SELECT id FROM User_Account WHERE username = 'trackUser3'), 3, '2002-11-05', 'Male', 2, 80.1, 'Right', 'Left', 'None');
 
-INSERT INTO Athlete_Team (athlete_id, team_id, position_id, discipline_id) VALUES 
-((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, (SELECT id FROM Discipline WHERE name = '100m Sprint')),
-((SELECT id FROM User_Account WHERE username = 'trackUser2'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, NULL),
-((SELECT id FROM User_Account WHERE username = 'trackUser3'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, NULL);
+INSERT INTO Athlete_Team (athlete_id, team_id) VALUES 
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'trackUser2'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'trackUser3'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'));
+
+INSERT INTO Athlete_Team_Discipline (athlete_id, team_id, discipline_id) VALUES
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Sprint')),
+
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Haies')),
+
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Saut en longueur'));
 
 -- ============================================================================
 -- 4. TESTS & PERFORMANCE RESULTS
 -- ============================================================================
--- Re-indexed from 1 to 5 to prevent sequence drift and script statement errors
 INSERT INTO Test (name, unit_of_measure, protocol, proof_needed) VALUES 
 ('1RM Back Squat', 'Kg', 'Maximum weight lifted for one repetition cleanly. (Force)', 'Photo'),
 ('Beep Test', 'Repetitions', 'Multi-stage 20m shuttle run test to volitional exhaustion. (Endurance)', 'None'),
