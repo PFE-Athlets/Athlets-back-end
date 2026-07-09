@@ -111,12 +111,11 @@ public class AthleteService {
         if (request.getInjuryHistory() != null) athlete.setInjuryHistory(request.getInjuryHistory());
         athleteRepository.save(athlete);
 
-        for (Long teamId : teamsToProcess) {
-            Team team = teamRepository.findById(teamId)
-                    .orElseThrow(() -> new IllegalArgumentException("Team not found with ID: " + teamId));
+        athleteTeamPositionRepository.deleteByPosition_IdNotInAndAthlete_IdAndTeam_IdNotIn(request.getPositionIds(), athlete.getId(), request.getTeamIds());
+        athleteTeamDisciplineRepository.deleteByDiscipline_IdNotInAndAthlete_IdAndTeam_IdNotIn(request.getDisciplineIds(), athlete.getId(), request.getTeamIds());
 
-            athleteTeamPositionRepository.deleteByAthleteIdAndSportIdAndTeamIdNotIn(athleteId, request.getSportId(), List.of(teamId));
-            athleteTeamDisciplineRepository.deleteByAthleteIdAndSportIdAndTeamIdNotIn(athleteId, request.getSportId(), List.of(teamId));
+        for (Long teamId : teamsToProcess) {
+            Team team = teamRepository.getReferenceById(teamId);
 
             if (request.getPositionIds() != null) {
                 for (Long posId : request.getPositionIds()) {
