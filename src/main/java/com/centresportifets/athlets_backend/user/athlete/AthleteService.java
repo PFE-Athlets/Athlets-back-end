@@ -19,6 +19,7 @@ import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.team.AthleteTeamDisciplineRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
 import com.centresportifets.athlets_backend.team.AthleteTeamPositionRepository;
+import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.team.Team;
 import com.centresportifets.athlets_backend.team.TeamRepository;
 import com.centresportifets.athlets_backend.user.UserType;

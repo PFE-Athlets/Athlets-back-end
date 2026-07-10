@@ -94,6 +94,7 @@ CREATE TABLE Coach (
     sport_id INT NOT NULL,
     team_id INT NOT NULL,
     title VARCHAR(50),
+    is_head_coach BOOLEAN NOT NULL,
     
     CONSTRAINT chk_is_coach CHECK (access_level = 2), 
     CONSTRAINT fk_coach_user FOREIGN KEY (user_id, access_level) 
