@@ -18,6 +18,22 @@ spring:
         compose:
             enabled: true
             file: docker-compose.yml
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: athlets.app@gmail.com
+        password: MOT_DE_PASSE_APPLICATION_GOOGLE
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+app:
+    frontend:
+        base-url: http://localhost:5173
+    mail:
+        from: athlets.app@gmail.com
 logging:
     level:
         org:

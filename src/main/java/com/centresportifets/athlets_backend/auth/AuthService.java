@@ -24,6 +24,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import com.centresportifets.athlets_backend.email.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 
 @RequiredArgsConstructor
 @Component("authService")
@@ -41,6 +43,11 @@ public class AuthService {
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
+
+	private final EmailService emailService;
+
+	@Value("${app.frontend.base-url:http://localhost:5173}")
+	private String frontendBaseUrl;
 
 	/**
 	 * Verifies inbound login attempts.
@@ -119,7 +126,10 @@ public class AuthService {
 
 		accountTokenRepository.save(accountToken);
 
-		String activationLink = "http://localhost:5173/activation-compte?token=" + tokenValue;
+		String activationLink = frontendBaseUrl + "/activation-compte?token=" + tokenValue;
+
+		// TODO: Uncomment when email sending is enabled.
+		// emailService.sendActivationEmail(user.getEmail(), activationLink);
 
 		System.out.println("Lien d'activation généré : " + activationLink);
 
