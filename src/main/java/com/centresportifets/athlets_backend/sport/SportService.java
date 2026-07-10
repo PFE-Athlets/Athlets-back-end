@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
+import com.centresportifets.athlets_backend.team.Team;
 import com.centresportifets.athlets_backend.team.TeamRepository;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
@@ -24,14 +25,11 @@ public class SportService {
     private final CoachRepository coachRepository;
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
-    public List<String> getTeamNames(Authentication auth) {
+    public List<Team> getTeams(Authentication auth) {
         if (authService.getAuthenticatedUserType(auth) == UserType.ADMIN) {
-            return teamRepository.findAll().stream()
-                    .filter(Objects::nonNull)
-                    .map(team -> team.getName())
-                    .collect(Collectors.toList());
+            return teamRepository.findAll();
         } else {
-            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam().getName());
+            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
         }
     }
 }

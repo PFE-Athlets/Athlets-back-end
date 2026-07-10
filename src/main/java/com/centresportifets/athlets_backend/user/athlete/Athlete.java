@@ -41,15 +41,12 @@ public class Athlete extends UserAccount {
     @Column(name = "injury_history")
     private String injuryHistory;
 
-    // 1. Core relationship: Tracks which teams the athlete is registered to
     @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AthleteTeam> athleteTeams = new ArrayList<>();
 
-    // 2. New multi-position relationship mapping
     @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AthleteTeamPosition> athleteTeamPositions = new ArrayList<>();
 
-    // 3. New multi-discipline relationship mapping
     @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AthleteTeamDiscipline> athleteTeamDisciplines = new ArrayList<>();
 

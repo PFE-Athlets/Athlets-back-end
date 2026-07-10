@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS Discipline CASCADE;
 DROP TABLE IF EXISTS Position CASCADE;
 DROP TABLE IF EXISTS Sport CASCADE;
 DROP TABLE IF EXISTS Test_Sport CASCADE;
+DROP TABLE IF EXISTS athlete_team_position CASCADE;
+DROP TABLE IF EXISTS athlete_team_discipline CASCADE;
 
 -- ==========================================
 -- 1. REFERENCE TABLES & INDEPENDENT ENTITIES

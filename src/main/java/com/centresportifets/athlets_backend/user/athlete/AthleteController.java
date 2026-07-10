@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
+import com.centresportifets.athlets_backend.user.athlete.dto.AthleteUpdateRequest;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,6 +45,11 @@ public class AthleteController {
     @GetMapping("/current")
     public AthleteData getAthleteData(Authentication auth){
         return athleteService.getCurrentAthleteData(auth);
+    }
+
+    @PutMapping("/{id}")
+    public void modifyAthlete(@PathVariable Long athleteId, @RequestBody AthleteUpdateRequest request, Authentication auth) {
+        athleteService.updateAthlete(athleteId, request, auth);
     }
 
     @PutMapping("/{athleteId}/deactivate")

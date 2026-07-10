@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.team.Team;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +23,7 @@ public class SportController {
     private final SportService sportService;
 
     @GetMapping("/teams")
-    public ResponseEntity<List<String>> getTeams(Authentication auth) {
-        return ResponseEntity.status(HttpStatus.OK).body(sportService.getTeamNames(auth));
+    public ResponseEntity<List<Team>> getTeams(Authentication auth) {
+        return ResponseEntity.status(HttpStatus.OK).body(sportService.getTeams(auth));
     }
 }

@@ -209,23 +209,12 @@ public class AuthService {
                 break;
 
             case COACH:
-                if (targetUser.getAccessLevel() != UserType.ATHLETE.getPermissionLevel()) {
+                if (targetUser.getAccessLevel() != UserType.ATHLETE.getPermissionLevel()) 
                     throw new AccessDeniedException("Coaches are only authorized to deactivate athletes.");
-                }
-                
-                Coach coach = coachRepository.findByUsername(auth.getName())
-                        .orElseThrow(() -> new IllegalArgumentException("Coach profile not found."));
-                
-                Athlete athlete = athleteRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("Athlete profile not found."));
 
-                Long coachTeamId = coach.getTeam().getId();
-                boolean isSameTeam = athlete.getAthleteTeams().stream()
-                        .anyMatch(at -> at.getId().getTeamId().equals(coachTeamId));
+				if(!canManageAthletes(auth, List.of(targetUser.getUsername())))
+					throw new AccessDeniedException("You can only deactivate athletes belonging to your own team.");
 
-                if (!isSameTeam) {
-                    throw new AccessDeniedException("You can only deactivate athletes belonging to your own team.");
-                }
                 break;
 
             default:
