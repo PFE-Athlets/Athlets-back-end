@@ -1,16 +1,11 @@
 package com.centresportifets.athlets_backend.auth.token;
 
-import com.centresportifets.athlets_backend.auth.AuthUser;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "account_token")
 public class AccountToken {
@@ -35,56 +30,8 @@ public class AccountToken {
 	private LocalDateTime createdAt = LocalDateTime.now();
 
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "user_id")
-	private AuthUser user;
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public LocalDateTime getExpiresAt() {
-		return expiresAt;
-	}
-
-	public void setExpiresAt(LocalDateTime expiresAt) {
-		this.expiresAt = expiresAt;
-	}
-
-	public LocalDateTime getUsedAt() {
-		return usedAt;
-	}
-
-	public void setUsedAt(LocalDateTime usedAt) {
-		this.usedAt = usedAt;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public AuthUser getUser() {
-		return user;
-	}
-
-	public void setUser(AuthUser user) {
-		this.user = user;
-	}
+	@JoinColumn(name = "user_id", nullable = false)
+	private UserAccount user;
 
 	public boolean isUsed() {
 		return usedAt != null;

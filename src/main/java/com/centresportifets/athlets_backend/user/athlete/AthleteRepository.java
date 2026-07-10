@@ -1,0 +1,11 @@
+package com.centresportifets.athlets_backend.user.athlete;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AthleteRepository extends JpaRepository<Athlete, Long> {
+	List<Athlete> findAllByUsernameIn(List<String> usernames);
+
+	List<Athlete> findByAthleteTeamsTeamId(Long teamId);
+}

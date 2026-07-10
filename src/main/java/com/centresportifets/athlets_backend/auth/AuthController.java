@@ -16,16 +16,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+import com.centresportifets.athlets_backend.auth.dto.AuthUser;
+import com.centresportifets.athlets_backend.user.UserAccount;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
 @Tag(name = "Authentication controller", description = "Handles basic user authentication flow and account creation")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
 	private final AuthService authService;
-
-	public AuthController(AuthService authService) {
-		this.authService = authService;
-	}
 
 	/**
 	 * Handles the entire login flow of the application
@@ -51,16 +57,15 @@ public class AuthController {
 			@RequestBody AuthCredentials credentials,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		Optional<AuthUser> authUserOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
+		Optional<UserAccount> userAccountOpt = authService.verifyAndFetchUser(credentials.getUsername(), credentials.getPassword());
 
-		if (authUserOpt.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Invalid username or password");
+		if (userAccountOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
 		}
 
-		authService.loginUser(authUserOpt.get(), request, response);
+		authService.loginUser(userAccountOpt.get(), request, response);
 
-		return ResponseEntity.ok(Map.of("message", "Connexion réussie."));
+		return ResponseEntity.ok(new AuthUser(userAccountOpt.get()));
 	}
 
 	/**

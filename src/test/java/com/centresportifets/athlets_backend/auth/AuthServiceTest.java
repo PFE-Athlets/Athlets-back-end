@@ -1,8 +1,12 @@
 package com.centresportifets.athlets_backend.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.centresportifets.athlets_backend.auth.token.AccountTokenRepository;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
@@ -22,7 +26,10 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 class AuthServiceTest {
 
     @Mock
-    private AuthUserRepository userRepository;
+    private UserAccountRepository userRepository;
+
+    @Mock
+    private AccountTokenRepository accountTokenRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -44,7 +51,7 @@ class AuthServiceTest {
         String username = "missingUser";
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
-        Optional<AuthUser> result = authService.verifyAndFetchUser(username, "anyPassword");
+        Optional<UserAccount> result = authService.verifyAndFetchUser(username, "anyPassword");
 
         assertTrue(result.isEmpty());
         verify(userRepository).findByUsername(username);
@@ -55,13 +62,15 @@ class AuthServiceTest {
     void verifyAndFetchUser_WhenPasswordDoesNotMatch_ReturnsEmpty() {
         String username = "existingUser";
         String rawPassword = "wrongPassword";
-        AuthUser mockUser = mock(AuthUser.class);
+        UserAccount mockUser = mock(UserAccount.class);
+
+        when(mockUser.getAccountStatus()).thenReturn("Active");
         when(mockUser.getPassword()).thenReturn("encodedPassword");
-        
+
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(rawPassword, "encodedPassword")).thenReturn(false);
 
-        Optional<AuthUser> result = authService.verifyAndFetchUser(username, rawPassword);
+        Optional<UserAccount> result = authService.verifyAndFetchUser(username, rawPassword);
 
         assertTrue(result.isEmpty());
         verify(userRepository).findByUsername(username);
@@ -72,23 +81,44 @@ class AuthServiceTest {
     void verifyAndFetchUser_WhenCredentialsAreValid_ReturnsUser() {
         String username = "validUser";
         String rawPassword = "correctPassword";
-        AuthUser mockUser = mock(AuthUser.class);
+        UserAccount mockUser = mock(UserAccount.class);
+
+        when(mockUser.getAccountStatus()).thenReturn("Active");
         when(mockUser.getPassword()).thenReturn("encodedPassword");
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(rawPassword, "encodedPassword")).thenReturn(true);
 
-        Optional<AuthUser> result = authService.verifyAndFetchUser(username, rawPassword);
+        Optional<UserAccount> result = authService.verifyAndFetchUser(username, rawPassword);
 
         assertTrue(result.isPresent());
         assertEquals(mockUser, result.get());
+        verify(userRepository).findByUsername(username);
+        verify(passwordEncoder).matches(rawPassword, "encodedPassword");
+    }
+
+    @Test
+    void verifyAndFetchUser_WhenAccountIsNotActive_ReturnsEmpty() {
+        String username = "inactiveUser";
+        String rawPassword = "correctPassword";
+        UserAccount mockUser = mock(UserAccount.class);
+
+        when(mockUser.getAccountStatus()).thenReturn("A_ACTIVER");
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+
+        Optional<UserAccount> result = authService.verifyAndFetchUser(username, rawPassword);
+
+        assertTrue(result.isEmpty());
+        verify(userRepository).findByUsername(username);
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
 
     @Test
     void loginUser_SetsSecurityContextAndSavesIt() {
-        AuthUser mockUser = mock(AuthUser.class);
+        UserAccount mockUser = mock(UserAccount.class);
         when(mockUser.getUsername()).thenReturn("john_doe");
-        
+
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
 

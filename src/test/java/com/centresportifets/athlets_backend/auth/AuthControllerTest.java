@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+import com.centresportifets.athlets_backend.user.UserAccount;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -42,7 +43,7 @@ class AuthControllerTest {
 
     @Test
     void loginUser_WithValidCredentials_ReturnsOk() {
-        AuthUser mockUser = mock(AuthUser.class);
+        UserAccount mockUser = mock(UserAccount.class);
         
         when(authService.verifyAndFetchUser("testUser", "testPassword"))
                 .thenReturn(Optional.of(mockUser));

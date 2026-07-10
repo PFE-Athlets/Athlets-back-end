@@ -3,12 +3,16 @@ package com.centresportifets.athlets_backend.auth;
 import com.centresportifets.athlets_backend.auth.dto.ActivateAccountRequest;
 import com.centresportifets.athlets_backend.auth.token.AccountToken;
 import com.centresportifets.athlets_backend.auth.token.AccountTokenRepository;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
+import com.centresportifets.athlets_backend.user.UserType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,8 +22,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
+@Component("authService")
 @Service
 public class AuthService {
 
@@ -28,23 +35,12 @@ public class AuthService {
 	private static final String ACCOUNT_STATUS_ACTIVE = "Active";
 	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 24;
 
-	private final AuthUserRepository userRepository;
+	private final UserAccountRepository userRepository;
 	private final AccountTokenRepository accountTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
-
-	public AuthService(
-			AuthUserRepository userRepository,
-			AccountTokenRepository accountTokenRepository,
-			PasswordEncoder passwordEncoder,
-			SecurityContextLogoutHandler logoutHandler) {
-		this.userRepository = userRepository;
-		this.accountTokenRepository = accountTokenRepository;
-		this.passwordEncoder = passwordEncoder;
-		this.logoutHandler = logoutHandler;
-	}
 
 	/**
 	 * Verifies inbound login attempts.
@@ -53,14 +49,14 @@ public class AuthService {
 	 * @param rawPassword Unencrypted password
 	 * @return the authenticated user object if an account is associated with the credentials
 	 */
-	public Optional<AuthUser> verifyAndFetchUser(String username, String rawPassword) {
-		Optional<AuthUser> user = userRepository.findByUsername(username);
+	public Optional<UserAccount> verifyAndFetchUser(String username, String rawPassword) {
+		Optional<UserAccount> user = userRepository.findByUsername(username);
 
 		if (user.isEmpty()) {
 			return Optional.empty();
 		}
 
-		AuthUser realUser = user.get();
+		UserAccount realUser = user.get();
 
 		if (!ACCOUNT_STATUS_ACTIVE.equals(realUser.getAccountStatus())) {
 			return Optional.empty();
@@ -83,8 +79,22 @@ public class AuthService {
 			throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire.");
 		}
 
-		AuthUser user = userRepository.findByUsername(username)
+		UserAccount user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new IllegalArgumentException("Aucun utilisateur trouvé avec ce nom d'utilisateur."));
+
+		return generateActivationTokenForUser(user);
+	}
+
+	/**
+	 * Generates an activation token for a user account.
+	 *
+	 * @param user User account to activate
+	 * @return Activation link to use from the frontend
+	 */
+	public String generateActivationTokenForUser(UserAccount user) {
+		if (user == null) {
+			throw new IllegalArgumentException("L'utilisateur est obligatoire.");
+		}
 
 		if (!ACCOUNT_STATUS_TO_ACTIVATE.equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte n'est pas en attente d'activation.");
@@ -139,7 +149,7 @@ public class AuthService {
 			throw new IllegalArgumentException("Ce lien d'activation est expiré.");
 		}
 
-		AuthUser user = accountToken.getUser();
+		UserAccount user = accountToken.getUser();
 
 		if (!ACCOUNT_STATUS_TO_ACTIVATE.equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte est déjà activé ou ne peut pas être activé.");
@@ -184,17 +194,17 @@ public class AuthService {
 	 * Logs in the user to springboot, and creates the JSESSIONID token that is sent to the frontend
 	 * browser
 	 *
-	 * @param authuser authenticated user that has been fetched with the appropriate credentials
+	 * @param UserAccount authenticated user that has been fetched with the appropriate credentials
 	 * @param request the incoming HTTP request used to bind and establish the security context
 	 *     session
 	 * @param response the outgoing HTTP response where the JSESSIONID cookie is injected upon
 	 *     success
 	 */
 	public void loginUser(
-			AuthUser authuser, HttpServletRequest request, HttpServletResponse response) {
+			UserAccount UserAccount, HttpServletRequest request, HttpServletResponse response) {
 		Authentication authentication =
 				UsernamePasswordAuthenticationToken.authenticated(
-						authuser.getUsername(), null, List.of(new SimpleGrantedAuthority("ADMIN")));
+						UserAccount.getUsername(), null, List.of(new SimpleGrantedAuthority("ADMIN")));
 
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication);
@@ -217,5 +227,47 @@ public class AuthService {
 	 */
 	public void logoutUser(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
 		logoutHandler.logout(request, response, authentication);
+	}
+
+	/**
+	 *  Checks if the userId provided (like the one for completing a test) corresponds to the user connected to the backend
+	 */
+	public boolean checkIfUserIsAuthenticatedUser(Long userId, Authentication auth) {
+		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+		UserAccount authenticatedUser = userOpt.get();
+		return authenticatedUser.getId().equals(userId);
+	}
+
+	public boolean checkIfUserIsAuthenticatedUser(UserAccount user, Authentication auth) {
+		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
+	}
+
+	/**
+	 *  Verify that the authenticated user has the appropriate permission for an access 
+	 */
+	public boolean hasPermission(Authentication auth, String userTypeName) {
+		UserType userType = UserType.valueOf(userTypeName);
+		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+		UserAccount authenticatedUser = userOpt.get();
+		return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
+	}
+
+	/**
+	 *  Retrieves the usertype of the current authenticated user
+	 */
+	public UserType getAuthenticatedUserType(Authentication auth){
+		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("No user logged in the backend")).getAccessLevel();
+		switch (permissionLevel){
+			case 1: return UserType.ADMIN;
+			case 2: return UserType.COACH;
+			case 3: return UserType.ATHLETE;
+			default: return UserType.INVALID;
+		}
 	}
 }
