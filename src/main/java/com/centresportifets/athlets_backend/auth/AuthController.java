@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
 import com.centresportifets.athlets_backend.auth.dto.AuthUser;
 import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.auth.dto.PasswordResetRequest;
+import com.centresportifets.athlets_backend.auth.dto.ResetPasswordRequest;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -102,6 +104,44 @@ public class AuthController {
 			authService.activateAccount(request);
 
 			return ResponseEntity.ok(Map.of("message", "Compte activé avec succès."));
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Generates a password reset token for an active account.
+	 *
+	 * @param request Request containing the email of the account
+	 * @return neutral confirmation response
+	 */
+	@PostMapping("/password-reset/request")
+	public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+		authService.generatePasswordResetToken(request.getEmail());
+
+		/*
+		* Réponse volontairement neutre.
+		* On ne veut pas révéler si l'email existe ou non.
+		*/
+		return ResponseEntity.ok(Map.of(
+				"message", "Si le compte existe et est actif, un lien de réinitialisation sera envoyé."
+		));
+	}
+
+	/**
+	 * Resets a user's password using a valid password reset token.
+	 *
+	 * @param request Request containing the reset token and new password
+	 * @return success response
+	 */
+	@PostMapping("/password-reset/confirm")
+	public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+		try {
+			authService.resetPassword(request);
+
+			return ResponseEntity.ok(Map.of(
+					"message", "Mot de passe réinitialisé avec succès."
+			));
 		} catch (IllegalArgumentException exception) {
 			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
 		}

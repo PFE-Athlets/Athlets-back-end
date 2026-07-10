@@ -1,6 +1,7 @@
 package com.centresportifets.athlets_backend.auth;
 
 import com.centresportifets.athlets_backend.auth.dto.ActivateAccountRequest;
+import com.centresportifets.athlets_backend.auth.dto.ResetPasswordRequest;
 import com.centresportifets.athlets_backend.auth.token.AccountToken;
 import com.centresportifets.athlets_backend.auth.token.AccountTokenRepository;
 import com.centresportifets.athlets_backend.user.UserAccount;
@@ -32,10 +33,12 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 public class AuthService {
 
-	private static final String ACTIVATION_TOKEN_TYPE = "ACTIVATION";
-	private static final String ACCOUNT_STATUS_TO_ACTIVATE = "A_ACTIVER";
 	private static final String ACCOUNT_STATUS_ACTIVE = "Active";
+	private static final String ACCOUNT_STATUS_TO_ACTIVATE = "A_ACTIVER";
+	private static final String PASSWORD_RESET_TOKEN_TYPE = "PASSWORD_RESET";
+	private static final String ACTIVATION_TOKEN_TYPE = "ACTIVATION";
 	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 24;
+	private static final int PASSWORD_RESET_TOKEN_EXPIRATION_HOURS = 1;
 
 	private final UserAccountRepository userRepository;
 	private final AccountTokenRepository accountTokenRepository;
@@ -174,6 +177,11 @@ public class AuthService {
 		accountTokenRepository.save(accountToken);
 	}
 
+	/**
+	 * Validates the activation request.
+	 *
+	 * @param request Activation request to validate
+	 */
 	private void validateActivationRequest(ActivateAccountRequest request) {
 		if (request == null) {
 			throw new IllegalArgumentException("La demande d'activation est invalide.");
@@ -198,6 +206,107 @@ public class AuthService {
 		if (request.getNewPassword().length() < 8) {
 			throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
 		}
+	}
+
+	/**
+	 * Generates a password reset token for a user account.
+	 *
+	 * @param email Email account to reset
+	 * @return Reset link to use from the frontend
+	 */
+	public String generatePasswordResetToken(String email) {
+		if (email == null || email.isBlank()) {
+			throw new IllegalArgumentException("Email requis.");
+		}
+
+		Optional<UserAccount> userOptional = userRepository.findByEmail(email);
+
+		// Verify if user exists
+		if (userOptional.isEmpty()) {
+			return null;
+		}
+
+		UserAccount user = userOptional.get();
+
+		if (!ACCOUNT_STATUS_ACTIVE.equals(user.getAccountStatus())) {
+			return null;
+		}
+
+		accountTokenRepository.findByUserAndTypeAndUsedAtIsNull(user, PASSWORD_RESET_TOKEN_TYPE)
+				.forEach(activeToken -> {
+					activeToken.setUsedAt(LocalDateTime.now());
+					accountTokenRepository.save(activeToken);
+				});
+
+		String tokenValue = UUID.randomUUID().toString();
+
+		AccountToken accountToken = new AccountToken();
+		accountToken.setToken(tokenValue);
+		accountToken.setType(PASSWORD_RESET_TOKEN_TYPE);
+		accountToken.setUser(user);
+		accountToken.setExpiresAt(LocalDateTime.now().plusHours(PASSWORD_RESET_TOKEN_EXPIRATION_HOURS));
+
+		accountTokenRepository.save(accountToken);
+
+		String resetLink = frontendBaseUrl + "/reinitialisation-mot-de-passe?token=" + tokenValue;
+
+		// TODO: Uncomment when email sending is enabled.
+		// emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+
+		System.out.println("Lien de réinitialisation généré : " + resetLink);
+		System.out.println("Lien de réinitialisation pour " + user.getEmail() + " : " + resetLink);
+
+		return resetLink;
+	}
+
+	/**
+	 * Resets the password for a user account using a valid reset token.
+	 *
+	 * @param request Reset password request containing token and new password
+	 */
+	public void resetPassword(ResetPasswordRequest request) {
+		if (request.getToken() == null || request.getToken().isBlank()) {
+			throw new IllegalArgumentException("Token requis.");
+		}
+
+		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+			throw new IllegalArgumentException("Nouveau mot de passe requis.");
+		}
+
+		if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+			throw new IllegalArgumentException("Les mots de passe ne correspondent pas.");
+		}
+
+		if (request.getNewPassword().length() < 8) {
+			throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
+		}
+
+		AccountToken accountToken = accountTokenRepository.findByToken(request.getToken())
+				.orElseThrow(() -> new IllegalArgumentException("Token invalide."));
+
+		if (!PASSWORD_RESET_TOKEN_TYPE.equals(accountToken.getType())) {
+			throw new IllegalArgumentException("Token invalide.");
+		}
+
+		if (accountToken.isUsed()) {
+			throw new IllegalArgumentException("Token déjà utilisé.");
+		}
+
+		if (accountToken.isExpired()) {
+			throw new IllegalArgumentException("Token expiré.");
+		}
+
+		UserAccount user = accountToken.getUser();
+
+		if (!ACCOUNT_STATUS_ACTIVE.equals(user.getAccountStatus())) {
+			throw new IllegalArgumentException("Le compte n'est pas actif.");
+		}
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		accountToken.setUsedAt(LocalDateTime.now());
+
+		userRepository.save(user);
+		accountTokenRepository.save(accountToken);
 	}
 
 	/**
