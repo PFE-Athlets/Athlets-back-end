@@ -89,6 +89,10 @@ public class TeamService {
     }
 
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
+        if (newSubcoachesIds.contains(newCoachId)) {
+            throw new IllegalArgumentException("The head coach cannot be listed as a subcoach.");
+        }
+
         Coach previousHeadCoach = coachRepository.findByTeam_IdAndIsHeadCoachTrue(team.getId());
         if (previousHeadCoach != null && !previousHeadCoach.getId().equals(newCoachId)) {
             previousHeadCoach.setTeam(null);
@@ -104,7 +108,6 @@ public class TeamService {
         newHeadCoach.setAccountStatus("Active");
         coachRepository.save(newHeadCoach);
 
-        
         List<Coach> previousSubcoaches = coachRepository.findByTeam_IdAndIsHeadCoachFalse(team.getId());
         for (Coach previousSubcoach : previousSubcoaches) {
             if (!newSubcoachesIds.contains(previousSubcoach.getId())) {
