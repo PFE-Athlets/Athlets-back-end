@@ -26,6 +26,9 @@ public class Coach extends UserAccount {
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
+    @Column(name = "is_head_coach", nullable = false)
+    private boolean isHeadCoach;
+
     public Coach() {
         this.setAccessLevel(2);
     }
