@@ -42,8 +42,10 @@ public class TeamService {
             teamDisplay.setNumberOfAthletes(athleteTeamRepository.countByTeamId(team.getId()));
             
             Coach headCoach = coachRepository.findByTeam_IdAndIsHeadCoachTrue(team.getId());
-            teamDisplay.setHeadCoachName(headCoach.getFirstName() + " " + headCoach.getLastName());
-            teamDisplay.setHeadCoachId(headCoach.getId());
+            if (headCoach != null) {
+                teamDisplay.setHeadCoachName(headCoach.getFirstName() + " " + headCoach.getLastName());
+                teamDisplay.setHeadCoachId(headCoach.getId());
+            }   
             return teamDisplay;
         }).toList();
 
