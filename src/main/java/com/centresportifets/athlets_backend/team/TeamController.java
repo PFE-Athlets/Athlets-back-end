@@ -7,11 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
+import com.centresportifets.athlets_backend.team.dto.TeamModificationRequest;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +40,11 @@ public class TeamController {
     @GetMapping("/subcoaches/{teamId}")
     public ResponseEntity<List<SubcoachDisplay>> getSubcoaches(@PathVariable Long teamId, Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getSubcoaches(teamId, auth));
+    }
+
+    @PutMapping("/modify/{teamId}")
+    public ResponseEntity<Object> modifyTeam(@PathVariable Long teamId, @RequestBody TeamModificationRequest request, Authentication auth) {
+        teamService.modifyTeam(teamId, request, auth);
+        return ResponseEntity.ok().build();
     }
 }
