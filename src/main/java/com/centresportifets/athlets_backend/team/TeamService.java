@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
+import com.centresportifets.athlets_backend.sport.SportRepository;
 import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
+import com.centresportifets.athlets_backend.team.dto.TeamCreationRequest;
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamModificationRequest;
 import com.centresportifets.athlets_backend.user.UserType;
@@ -24,6 +26,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final AthleteTeamRepository athleteTeamRepository;
     private final CoachRepository coachRepository;
+    private final SportRepository sportRepository;
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
     public List<Team> getTeams(Authentication auth) {
@@ -92,6 +95,16 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getNewCoachId(), request.getNewSubcoachesIds());
+    }
+
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
+    public void createTeam(TeamCreationRequest request, Authentication auth) {
+        Team team = new Team();
+        team.setName(request.getTeamName());
+        team.setSport(sportRepository.findById(request.getSportId()).orElseThrow(() -> new IllegalArgumentException("Sport not found")));
+        teamRepository.save(team);
+
+        updateTeamCoaches(team, request.getHeadCoachId(), request.getSubcoachIds());
     }
 
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
