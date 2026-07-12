@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,7 +42,7 @@ public class TeamController {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getSubcoaches(teamId, auth));
     }
 
-    @PutMapping("/modify/{teamId}")
+    @PatchMapping("/modify/{teamId}")
     public ResponseEntity<Object> modifyTeam(@PathVariable Long teamId, @RequestBody TeamModificationRequest request, Authentication auth) {
         teamService.modifyTeam(teamId, request, auth);
         return ResponseEntity.ok().build();
