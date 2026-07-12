@@ -23,12 +23,7 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping("/teams")
-    public ResponseEntity<List<Team>> getTeams(Authentication auth) {
-        return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeams(auth));
-    }
-
-    @GetMapping("/teams/display")
     public ResponseEntity<List<TeamDisplay>> getTeamDisplays(Authentication auth) {
-        return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeamDisplays(auth));
+        return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeams(auth));
     }
 }
