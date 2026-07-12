@@ -29,17 +29,8 @@ public class TeamService {
     private final SportRepository sportRepository;
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
-    public List<Team> getTeams(Authentication auth) {
-        if (authService.getAuthenticatedUserType(auth) == UserType.ADMIN) {
-            return teamRepository.findAll();
-        } else {
-            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
-        }
-    }
-
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
-    public List<TeamDisplay> getTeamDisplays(Authentication auth) {
-        List<TeamDisplay> teamDisplays = getTeams(auth).stream().map(team -> {
+    public List<TeamDisplay> getTeams(Authentication auth) {
+        List<TeamDisplay> teamDisplays = getTeamsForUser(auth).stream().map(team -> {
             TeamDisplay teamDisplay = new TeamDisplay();
             teamDisplay.setTeam(team);
             teamDisplay.setNumberOfAthletes(athleteTeamRepository.countByTeamId(team.getId()));
@@ -140,6 +131,14 @@ public class TeamService {
             newSubcoach.setHeadCoach(false);
             newSubcoach.setAccountStatus("Active");
             coachRepository.save(newSubcoach);
+        }
+    }
+    
+    private List<Team> getTeamsForUser(Authentication auth) {
+        if (authService.getAuthenticatedUserType(auth) == UserType.ADMIN) {
+            return teamRepository.findAll();
+        } else {
+            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
         }
     }
 }

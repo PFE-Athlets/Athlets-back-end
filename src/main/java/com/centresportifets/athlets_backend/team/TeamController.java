@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamCreationRequest;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamModificationRequest;
 
@@ -30,15 +31,10 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping("/teams")
-    public ResponseEntity<List<Team>> getTeams(Authentication auth) {
+    public ResponseEntity<List<TeamDisplay>> getTeamDisplays(Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeams(auth));
     }
-
-    @GetMapping("/teams/display")
-    public ResponseEntity<List<TeamDisplay>> getTeamDisplays(Authentication auth) {
-        return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeamDisplays(auth));
-    }
-
+    
     @GetMapping("/subcoaches/{teamId}")
     public ResponseEntity<List<SubcoachDisplay>> getSubcoaches(@PathVariable Long teamId, Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getSubcoaches(teamId, auth));
