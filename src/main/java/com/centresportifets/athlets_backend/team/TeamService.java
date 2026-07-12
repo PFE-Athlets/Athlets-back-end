@@ -1,5 +1,6 @@
 package com.centresportifets.athlets_backend.team;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
+import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.Coach;
@@ -45,5 +47,26 @@ public class TeamService {
         }).toList();
 
         return teamDisplays;
+    }
+
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    public List<SubcoachDisplay> getSubcoaches(Long teamId, Authentication auth) {
+        if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
+            Coach coach = coachRepository.findByUsername(auth.getName()).get();
+
+            if (!coach.getTeam().getId().equals(teamId)) {
+                throw new SecurityException("You are not authorized to access this team's subcoaches.");
+            }
+        }
+
+        List<SubcoachDisplay> subcoaches = new ArrayList<>();
+        coachRepository.findByTeam_IdAndIsHeadCoachFalse(teamId).forEach(coach -> {
+            SubcoachDisplay subcoachDisplay = new SubcoachDisplay();
+            subcoachDisplay.setSubcoachName(coach.getFirstName() + " " + coach.getLastName());
+            subcoachDisplay.setCoachId(coach.getId());
+            subcoaches.add(subcoachDisplay);
+        });
+
+        return subcoaches;
     }
 }
