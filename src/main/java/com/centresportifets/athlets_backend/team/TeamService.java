@@ -13,6 +13,7 @@ import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamCreationRequest;
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamModificationRequest;
+import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
@@ -103,7 +104,7 @@ public class TeamService {
         if (previousHeadCoach != null && !previousHeadCoach.getId().equals(newCoachId)) {
             previousHeadCoach.setTeam(null);
             previousHeadCoach.setSport(null);
-            previousHeadCoach.setAccountStatus("Inactive");
+            previousHeadCoach.setAccountStatus(UserStatus.INACTIVE.getStatus());
             coachRepository.save(previousHeadCoach);
         }
 
@@ -111,7 +112,7 @@ public class TeamService {
         newHeadCoach.setTeam(team);
         newHeadCoach.setSport(team.getSport());
         newHeadCoach.setHeadCoach(true);
-        newHeadCoach.setAccountStatus("Active");
+        newHeadCoach.setAccountStatus(UserStatus.ACTIVE.getStatus());
         coachRepository.save(newHeadCoach);
 
         List<Coach> previousSubcoaches = coachRepository.findByTeam_IdAndIsHeadCoachFalse(team.getId());
@@ -119,7 +120,7 @@ public class TeamService {
             if (!newSubcoachesIds.contains(previousSubcoach.getId())) {
                 previousSubcoach.setTeam(null);
                 previousSubcoach.setSport(null);
-                previousSubcoach.setAccountStatus("Inactive");
+                previousSubcoach.setAccountStatus(UserStatus.INACTIVE.getStatus());
                 coachRepository.save(previousSubcoach);
             }
         }
@@ -129,7 +130,7 @@ public class TeamService {
             newSubcoach.setTeam(team);
             newSubcoach.setSport(team.getSport());
             newSubcoach.setHeadCoach(false);
-            newSubcoach.setAccountStatus("Active");
+            newSubcoach.setAccountStatus(UserStatus.ACTIVE.getStatus());
             coachRepository.save(newSubcoach);
         }
     }
