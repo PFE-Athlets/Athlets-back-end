@@ -1,8 +1,8 @@
 package com.centresportifets.athlets_backend.user.athlete;
 
 import com.centresportifets.athlets_backend.team.AthleteTeam;
-import com.centresportifets.athlets_backend.team.AthleteTeamPosition;  // New Entity
-import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline; // New Entity
+import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
+import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.user.UserAccount;
 
 import jakarta.persistence.*;

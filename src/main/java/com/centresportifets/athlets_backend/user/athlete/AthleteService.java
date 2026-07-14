@@ -105,7 +105,10 @@ public class AthleteService {
 
         UserType callerType = authService.getAuthenticatedUserType(auth);
 
-        List<Long> teamsToProcess = callerType == UserType.COACH ? List.of() : request.getTeamIds();
+        List<Long> teamsToProcess = callerType == UserType.COACH ? 
+            List.of(coachRepository.findByUsername(auth.getName())
+            .orElseThrow(() -> new IllegalArgumentException("Current coach could not be found.")).getTeam().getId()) 
+            : request.getTeamIds();
 
         if (request.getPhone() != null) athlete.setPhone(request.getPhone());
         if (request.getWeightKg() != null) athlete.setWeightKg(request.getWeightKg());
