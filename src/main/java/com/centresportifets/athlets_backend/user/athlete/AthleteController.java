@@ -51,9 +51,4 @@ public class AthleteController {
     public void modifyAthlete(@PathVariable Long athleteId, @RequestBody AthleteUpdateRequest request, Authentication auth) {
         athleteService.updateAthlete(athleteId, request, auth);
     }
-
-    @PutMapping("/{athleteId}/deactivate")
-    public void deactivateAthleteAccount(@PathVariable long athleteId) {
-    }
-    
 }
