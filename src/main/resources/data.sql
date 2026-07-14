@@ -110,29 +110,41 @@ INSERT INTO Team (sport_id, name) VALUES
 ((SELECT id FROM Sport WHERE name = 'Flag-Football'), 'Piranhas Flag-Football'),
 ((SELECT id FROM Sport WHERE name = 'Badminton'), 'Piranhas Badminton');
 
-INSERT INTO Coach (user_id, access_level, sport_id, team_id, title) VALUES 
-((SELECT id FROM User_Account WHERE username = 'coach-volleyball'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Head Volleyball Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-athletics'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-rugby'), 2, (SELECT id FROM Sport WHERE name = 'Rugby'), (SELECT id FROM Team WHERE name = 'Piranhas Rugby'), 'Head Rugby Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-hockey'), 2, (SELECT id FROM Sport WHERE name = 'Hockey'), (SELECT id FROM Team WHERE name = 'Piranhas Hockey'), 'Head Hockey Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-cross-country'), 2, (SELECT id FROM Sport WHERE name = 'Cross-Country'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country'), 'Head XC Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-flag-football'), 2, (SELECT id FROM Sport WHERE name = 'Flag-Football'), (SELECT id FROM Team WHERE name = 'Piranhas Flag-Football'), 'Head Flag-Football Coach'),
-((SELECT id FROM User_Account WHERE username = 'coach-badminton'), 2, (SELECT id FROM Sport WHERE name = 'Badminton'), (SELECT id FROM Team WHERE name = 'Piranhas Badminton'), 'Head Badminton Coach');
+INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coach) VALUES 
+((SELECT id FROM User_Account WHERE username = 'coach-volleyball'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Head Volleyball Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-athletics'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-rugby'), 2, (SELECT id FROM Sport WHERE name = 'Rugby'), (SELECT id FROM Team WHERE name = 'Piranhas Rugby'), 'Head Rugby Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-hockey'), 2, (SELECT id FROM Sport WHERE name = 'Hockey'), (SELECT id FROM Team WHERE name = 'Piranhas Hockey'), 'Head Hockey Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-cross-country'), 2, (SELECT id FROM Sport WHERE name = 'Cross-Country'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country'), 'Head XC Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-flag-football'), 2, (SELECT id FROM Sport WHERE name = 'Flag-Football'), (SELECT id FROM Team WHERE name = 'Piranhas Flag-Football'), 'Head Flag-Football Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-badminton'), 2, (SELECT id FROM Sport WHERE name = 'Badminton'), (SELECT id FROM Team WHERE name = 'Piranhas Badminton'), 'Head Badminton Coach', true);
 
 INSERT INTO Athlete (user_id, access_level, birth_date, gender, height_meters, weight_kg, dominant_arm, dominant_leg, injury_history) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'trackUser1'), 3, '2002-03-11', 'Male', 2, 74.0, 'Right', 'Right', 'None'),
 ((SELECT id FROM User_Account WHERE username = 'trackUser2'), 3, '2003-07-22', 'Female', 1, 61.2, 'Left', 'Right', 'Slight hamstring pull 2025'),
 ((SELECT id FROM User_Account WHERE username = 'trackUser3'), 3, '2002-11-05', 'Male', 2, 80.1, 'Right', 'Left', 'None');
 
-INSERT INTO Athlete_Team (athlete_id, team_id, position_id, discipline_id) VALUES 
-((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, (SELECT id FROM Discipline WHERE name = '100m Sprint')),
-((SELECT id FROM User_Account WHERE username = 'trackUser2'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, NULL),
-((SELECT id FROM User_Account WHERE username = 'trackUser3'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), NULL, NULL);
+INSERT INTO Athlete_Team (athlete_id, team_id) VALUES 
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'trackUser2'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'trackUser3'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'));
+
+INSERT INTO Athlete_Team_Discipline (athlete_id, team_id, discipline_id) VALUES
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Sprint')),
+
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Haies')),
+
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
+ (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
+ (SELECT id FROM Discipline WHERE name = 'Saut en longueur'));
 
 -- ============================================================================
 -- 4. TESTS & PERFORMANCE RESULTS
 -- ============================================================================
--- Re-indexed from 1 to 5 to prevent sequence drift and script statement errors
 INSERT INTO Test (name, unit_of_measure, protocol, proof_needed) VALUES 
 ('1RM Back Squat', 'Kg', 'Maximum weight lifted for one repetition cleanly. (Force)', 'Photo'),
 ('Beep Test', 'Repetitions', 'Multi-stage 20m shuttle run test to volitional exhaustion. (Endurance)', 'None'),

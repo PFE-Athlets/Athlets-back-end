@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.sport;
+package com.centresportifets.athlets_backend.team;
 
 import java.util.List;
 
@@ -9,19 +9,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-@Tag(name = "Sport controller", description = "Handles sports and teams related actions")
+@Tag(name = "Team controller", description = "Handles sports and teams related actions")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/sport")
-public class SportController {
+@RequestMapping("/api/team")
+public class TeamController {
 
-    private final SportService sportService;
+    private final TeamService teamService;
 
     @GetMapping("/teams")
-    public ResponseEntity<List<String>> getTeams(Authentication auth) {
-        return ResponseEntity.status(HttpStatus.OK).body(sportService.getTeamNames(auth));
+    public ResponseEntity<List<TeamDisplay>> getTeamDisplays(Authentication auth) {
+        return ResponseEntity.status(HttpStatus.OK).body(teamService.getTeams(auth));
     }
 }

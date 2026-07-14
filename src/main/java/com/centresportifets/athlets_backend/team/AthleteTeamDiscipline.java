@@ -1,32 +1,33 @@
 package com.centresportifets.athlets_backend.team;
 
+import com.centresportifets.athlets_backend.sport.discipline.Discipline;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "Athlete_Team")
-public class AthleteTeam {
+@Table(name = "athlete_team_discipline")
+public class AthleteTeamDiscipline {
 
-    @EmbeddedId
-    private AthleteTeamId id = new AthleteTeamId();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ToString.Exclude
     @ManyToOne
-    @MapsId("athleteId")
     @JoinColumn(name = "athlete_id")
-    @JsonIgnore
     private Athlete athlete;
 
-    @ToString.Exclude
     @ManyToOne
-    @MapsId("teamId")
     @JoinColumn(name = "team_id")
-    @JsonIgnore
     private Team team;
+
+    @ManyToOne
+    @JoinColumn(name = "discipline_id")
+    private Discipline discipline;
 }
