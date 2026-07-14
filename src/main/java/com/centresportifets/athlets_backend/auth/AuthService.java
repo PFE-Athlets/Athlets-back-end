@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,6 +29,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import com.centresportifets.athlets_backend.email.EmailService;
 import org.springframework.beans.factory.annotation.Value;
+
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
+import com.centresportifets.athlets_backend.user.UserStatus;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
+import com.centresportifets.athlets_backend.user.coach.Coach;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 
 @RequiredArgsConstructor
 @Component("authService")
@@ -44,6 +55,8 @@ public class AuthService {
 	private final AccountTokenRepository accountTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
+	private final CoachRepository coachRepository;
+	private final AthleteRepository athleteRepository;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
 
@@ -68,8 +81,8 @@ public class AuthService {
 
 		UserAccount realUser = user.get();
 
-		if (!ACCOUNT_STATUS_ACTIVE.equals(realUser.getAccountStatus())) {
-			return Optional.empty();
+		if(realUser.getAccountStatus() == UserStatus.INACTIVE.getStatus()){
+			throw new IllegalStateException("User account is inactive");
 		}
 
 		return passwordEncoder.matches(rawPassword, realUser.getPassword())
@@ -311,7 +324,7 @@ public class AuthService {
 
 	/**
 	 * Logs in the user to springboot, and creates the JSESSIONID token that is sent to the frontend
-	 * browser
+	 * browser. Checks if the user 
 	 *
 	 * @param UserAccount authenticated user that has been fetched with the appropriate credentials
 	 * @param request the incoming HTTP request used to bind and establish the security context
@@ -323,7 +336,7 @@ public class AuthService {
 			UserAccount UserAccount, HttpServletRequest request, HttpServletResponse response) {
 		Authentication authentication =
 				UsernamePasswordAuthenticationToken.authenticated(
-						UserAccount.getUsername(), null, List.of(new SimpleGrantedAuthority("ADMIN")));
+						UserAccount.getUsername(), null, List.of());
 
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication);
@@ -365,17 +378,57 @@ public class AuthService {
 	}
 
 	/**
-	 *  Verify that the authenticated user has the appropriate permission for an access 
-	 */
-	public boolean hasPermission(Authentication auth, String userTypeName) {
-		UserType userType = UserType.valueOf(userTypeName);
-		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
-		if (userOpt.isEmpty()) {
-			return false;
-		}
-		UserAccount authenticatedUser = userOpt.get();
-		return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
-	}
+     * Helper to verify if the authenticated user has either ADMIN role OR 
+     * is a COACH who manages ALL of the athletes specified by their usernames.
+     */
+    public boolean canManageAthletes(Authentication auth, List<String> usernames) {
+        if (hasPermission(auth, "ADMIN")) {
+            return true;
+        }
+        
+        if (hasPermission(auth, "COACH")) {
+            Coach coach = coachRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
+            
+            List<Athlete> athletes = athleteRepository.findAllByUsernameIn(usernames);
+            if (athletes.isEmpty() || athletes.size() != usernames.size()) {
+                return false;
+            }
+            
+            Long coachTeamId = coach.getTeam().getId();
+            return athletes.stream().allMatch(athlete -> 
+                athlete.getAthleteTeams().stream()
+                       .anyMatch(at -> at.getId().getTeamId().equals(coachTeamId))
+            );
+        }
+        
+        return false;
+    }
+
+    /**
+     * Validates that the currently authenticated user owns the given athlete profile.
+     */
+    public boolean isAthleteOwner(Authentication auth, Athlete athlete) {
+        if (athlete == null || auth == null) return false;
+        return checkIfUserIsAuthenticatedUser(athlete.getId(), auth);
+    }
+
+    /**
+     * Checks if the authenticated user has a specific permission level
+     */
+    public boolean hasPermission(Authentication auth, String userTypeName) {
+        try {
+            UserType userType = UserType.valueOf(userTypeName);
+            Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+            if (userOpt.isEmpty()) {
+                return false;
+            }
+            UserAccount authenticatedUser = userOpt.get();
+            return userType.getPermissionLevel() == (authenticatedUser.getAccessLevel());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 
 	/**
 	 *  Retrieves the usertype of the current authenticated user
@@ -389,4 +442,42 @@ public class AuthService {
 			default: return UserType.INVALID;
 		}
 	}
+
+	/**
+     * Deactivates a user account based on the caller's role permissions.
+     * - Admins can deactivate any account except other Admins.
+     * - Coaches can only deactivate Athletes belonging to their own team.
+     *
+     * @param userId To-be-deactivated target user id
+     * @param auth Current authenticated caller session
+     */
+    public void setUserInactive(Long userId, Authentication auth) {
+        UserAccount targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Target user account not found."));
+        
+        UserType callerType = getAuthenticatedUserType(auth);
+
+        switch (callerType) {
+            case ADMIN:
+                if (targetUser.getAccessLevel() == UserType.ADMIN.getPermissionLevel()) {
+                    throw new AccessDeniedException("Administrators cannot deactivate other admin accounts.");
+                }
+                break;
+
+            case COACH:
+                if (targetUser.getAccessLevel() != UserType.ATHLETE.getPermissionLevel()) 
+                    throw new AccessDeniedException("Coaches are only authorized to deactivate athletes.");
+
+				if(!canManageAthletes(auth, List.of(targetUser.getUsername())))
+					throw new AccessDeniedException("You can only deactivate athletes belonging to your own team.");
+
+                break;
+
+            default:
+                throw new AccessDeniedException("You do not have permission to modify user statuses.");
+        }
+
+        targetUser.setAccountStatus(UserStatus.INACTIVE.getStatus());
+        userRepository.save(targetUser);
+    }
 }

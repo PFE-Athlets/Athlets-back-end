@@ -42,8 +42,8 @@ public class ResultController {
     }
 
     @PutMapping("/cancel/{testResultId}")
-    public ResponseEntity<Void> cancelSubmition(@PathVariable Long testResultId, Authentication auth) {
-        resultService.cancelSubmitionAthleteResult(testResultId, auth);
+    public ResponseEntity<Void> cancelSubmission(@PathVariable Long testResultId, Authentication auth) {
+        resultService.cancelSubmissionAthleteResult(testResultId, auth);
         return ResponseEntity.ok().build();
     }
 

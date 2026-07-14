@@ -1,6 +1,8 @@
 package com.centresportifets.athlets_backend.user.athlete;
 
 import com.centresportifets.athlets_backend.team.AthleteTeam;
+import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
+import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.user.UserAccount;
 
 import jakarta.persistence.*;
@@ -41,6 +43,12 @@ public class Athlete extends UserAccount {
 
     @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AthleteTeam> athleteTeams = new ArrayList<>();
+
+    @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AthleteTeamPosition> athleteTeamPositions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "athlete", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AthleteTeamDiscipline> athleteTeamDisciplines = new ArrayList<>();
 
     public Athlete() {
         this.setAccessLevel(3);

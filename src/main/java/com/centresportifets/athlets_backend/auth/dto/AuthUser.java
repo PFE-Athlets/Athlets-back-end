@@ -12,6 +12,7 @@ public class AuthUser {
     private String lastName;
     private String email;
     private long accessLevel;
+    private String accountStatus;
 
     public AuthUser(UserAccount userAccount) {
         this.id = userAccount.getId();
@@ -20,5 +21,6 @@ public class AuthUser {
         this.firstName = userAccount.getFirstName();
         this.email = userAccount.getEmail();
         this.accessLevel = userAccount.getAccessLevel();
+        this.accountStatus = userAccount.getAccountStatus();
     }
 }
