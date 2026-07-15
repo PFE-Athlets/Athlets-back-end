@@ -52,11 +52,4 @@ public class AthleteController {
     {
         athleteService.updateAthlete(athleteId, request, auth);
     }
-
-    @PutMapping("/{athleteId}/deactivate")
-    public ResponseEntity<Void> deactivateAthleteAccount(@PathVariable Long athleteId, Authentication auth)
-    {
-        athleteService.deactivateAthleteAccount(athleteId, auth);
-        return ResponseEntity.ok().build();
-    }
 }
