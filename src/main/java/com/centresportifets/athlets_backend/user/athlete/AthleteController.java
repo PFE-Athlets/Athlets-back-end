@@ -48,7 +48,15 @@ public class AthleteController {
     }
 
     @PutMapping("/{id}")
-    public void modifyAthlete(@PathVariable Long athleteId, @RequestBody AthleteUpdateRequest request, Authentication auth) {
+    public void modifyAthlete(@PathVariable("id") Long athleteId, @RequestBody AthleteUpdateRequest request, Authentication auth) 
+    {
         athleteService.updateAthlete(athleteId, request, auth);
+    }
+
+    @PutMapping("/{athleteId}/deactivate")
+    public ResponseEntity<Void> deactivateAthleteAccount(@PathVariable Long athleteId, Authentication auth)
+    {
+        athleteService.deactivateAthleteAccount(athleteId, auth);
+        return ResponseEntity.ok().build();
     }
 }

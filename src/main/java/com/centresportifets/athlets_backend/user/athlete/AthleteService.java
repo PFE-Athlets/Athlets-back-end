@@ -138,4 +138,19 @@ public class AthleteService {
             }
         }
     }
+
+    @Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    public void deactivateAthleteAccount(Long athleteId, Authentication auth) {
+        Athlete athlete = athleteRepository.findById(athleteId)
+            .orElseThrow(() -> new IllegalArgumentException("Athlete not found with ID: " + athleteId));
+
+        if (!authService.canManageAthletes(auth, List.of(athlete.getUsername()))) {
+            throw new AccessDeniedException("You do not have permission to deactivate this athlete.");
+        }
+
+        athlete.setAccountStatus("Inactive");
+
+        athleteRepository.save(athlete);
+    }
 }
