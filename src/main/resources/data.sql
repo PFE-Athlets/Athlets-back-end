@@ -80,6 +80,8 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 ('L.', 'Seguin', 'lseguin0@etsmtl.ca', NULL, 'lseguin0', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 1),
 
 ('Coach', 'Volleyball', 'coach.volleyball@etsmtl.ca', NULL, 'coach-volleyball', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
+('Coach2', 'Volleyball', 'coach2.volleyball@etsmtl.ca', NULL, 'coach-volleyball2', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
+('Coach3', 'Volleyball', 'coach3.volleyball@etsmtl.ca', NULL, 'coach-volleyball3', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Athlétisme', 'coach.athletisme@etsmtl.ca', NULL, 'coach-athletics', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Rugby', 'coach.rugby@etsmtl.ca', NULL, 'coach-rugby', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Hockey', 'coach.hockey@etsmtl.ca', NULL, 'coach-hockey', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
@@ -112,6 +114,8 @@ INSERT INTO Team (sport_id, name) VALUES
 
 INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coach) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'coach-volleyball'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Head Volleyball Coach', true),
+((SELECT id FROM User_Account WHERE username = 'coach-volleyball2'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
+((SELECT id FROM User_Account WHERE username = 'coach-volleyball3'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
 ((SELECT id FROM User_Account WHERE username = 'coach-athletics'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-rugby'), 2, (SELECT id FROM Sport WHERE name = 'Rugby'), (SELECT id FROM Team WHERE name = 'Piranhas Rugby'), 'Head Rugby Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-hockey'), 2, (SELECT id FROM Sport WHERE name = 'Hockey'), (SELECT id FROM Team WHERE name = 'Piranhas Hockey'), 'Head Hockey Coach', true),

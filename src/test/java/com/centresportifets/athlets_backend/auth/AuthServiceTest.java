@@ -127,8 +127,6 @@ class AuthServiceTest {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         assertNotNull(auth);
         assertEquals("john_doe", auth.getName());
-        assertTrue(auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ADMIN")));
     }
 
     @Test

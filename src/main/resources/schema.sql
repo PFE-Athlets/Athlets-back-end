@@ -63,7 +63,7 @@ CREATE TABLE User_Account (
     account_status VARCHAR(15) NOT NULL DEFAULT 'Active',
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
     access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete
-    CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive', 'A_ACTIVER')),
+    CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','Pending')),
     CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)),
     CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
 );
@@ -97,17 +97,17 @@ CREATE TABLE Administrator (
 CREATE TABLE Team (
     id SERIAL PRIMARY KEY,
     sport_id INT NOT NULL,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
     CONSTRAINT fk_team_sport FOREIGN KEY (sport_id) REFERENCES Sport(id)
 );
 
 CREATE TABLE Coach (
     user_id INT PRIMARY KEY,
     access_level INT NOT NULL DEFAULT 2,
-    sport_id INT NOT NULL,
-    team_id INT NOT NULL,
+    sport_id INT,
+    team_id INT,
     title VARCHAR(50),
-    is_head_coach BOOLEAN NOT NULL,
+    is_head_coach BOOLEAN,
     
     CONSTRAINT chk_is_coach CHECK (access_level = 2), 
     CONSTRAINT fk_coach_user FOREIGN KEY (user_id, access_level) 
