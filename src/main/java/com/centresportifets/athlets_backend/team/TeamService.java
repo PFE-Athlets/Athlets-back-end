@@ -102,37 +102,31 @@ public class TeamService {
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
         Coach previousHeadCoach = coachRepository.findByTeam_IdAndIsHeadCoachTrue(team.getId());
         if (previousHeadCoach != null && !previousHeadCoach.getId().equals(newCoachId)) {
-            previousHeadCoach.setTeam(null);
-            previousHeadCoach.setSport(null);
-            previousHeadCoach.setAccountStatus(UserStatus.INACTIVE.getStatus());
-            coachRepository.save(previousHeadCoach);
+            setCoach(previousHeadCoach, null, false);
         }
 
         Coach newHeadCoach = coachRepository.findById(newCoachId).orElseThrow(() -> new IllegalArgumentException("New head coach not found"));
-        newHeadCoach.setTeam(team);
-        newHeadCoach.setSport(team.getSport());
-        newHeadCoach.setHeadCoach(true);
-        newHeadCoach.setAccountStatus(UserStatus.ACTIVE.getStatus());
-        coachRepository.save(newHeadCoach);
+        setCoach(newHeadCoach, team, true);
 
         List<Coach> previousSubcoaches = coachRepository.findByTeam_IdAndIsHeadCoachFalse(team.getId());
         for (Coach previousSubcoach : previousSubcoaches) {
             if (!newSubcoachesIds.contains(previousSubcoach.getId())) {
-                previousSubcoach.setTeam(null);
-                previousSubcoach.setSport(null);
-                previousSubcoach.setAccountStatus(UserStatus.INACTIVE.getStatus());
-                coachRepository.save(previousSubcoach);
+                setCoach(previousSubcoach, null, false);
             }
         }
 
         for (Long newSubcoachId : newSubcoachesIds) {
             Coach newSubcoach = coachRepository.findById(newSubcoachId).orElseThrow(() -> new IllegalArgumentException("New subcoach not found"));
-            newSubcoach.setTeam(team);
-            newSubcoach.setSport(team.getSport());
-            newSubcoach.setHeadCoach(false);
-            newSubcoach.setAccountStatus(UserStatus.ACTIVE.getStatus());
-            coachRepository.save(newSubcoach);
+            setCoach(newSubcoach, team, false);
         }
+    }
+
+    private void setCoach(Coach coach, Team team, boolean isHeadCoach) {
+        coach.setTeam(team);
+        coach.setSport(team != null ? team.getSport() : null);
+        coach.setHeadCoach(isHeadCoach);
+        coach.setAccountStatus(team != null ? UserStatus.ACTIVE.getStatus() : UserStatus.INACTIVE.getStatus());
+        coachRepository.save(coach);
     }
     
     private List<Team> getTeamsForUser(Authentication auth) {

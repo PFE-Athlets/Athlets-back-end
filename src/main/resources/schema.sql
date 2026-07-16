@@ -84,7 +84,7 @@ CREATE TABLE Administrator (
 CREATE TABLE Team (
     id SERIAL PRIMARY KEY,
     sport_id INT NOT NULL,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
     CONSTRAINT fk_team_sport FOREIGN KEY (sport_id) REFERENCES Sport(id)
 );
 
