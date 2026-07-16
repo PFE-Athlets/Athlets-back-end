@@ -19,14 +19,14 @@ public class Coach extends UserAccount {
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sport_id", nullable = false)
+    @JoinColumn(name = "sport_id", nullable = true)
     private Sport sport;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id", nullable = false)
+    @JoinColumn(name = "team_id", nullable = true)
     private Team team;
 
-    @Column(name = "is_head_coach", nullable = false)
+    @Column(name = "is_head_coach", nullable = true)
     private boolean isHeadCoach;
 
     public Coach() {
