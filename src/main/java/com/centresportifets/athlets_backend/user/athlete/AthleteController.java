@@ -48,8 +48,8 @@ public class AthleteController {
     }
 
     @PutMapping("/{id}")
-    public void modifyAthlete(@PathVariable("id") Long athleteId, @RequestBody AthleteUpdateRequest request, Authentication auth) 
+    public void modifyAthlete(@PathVariable Long id, @RequestBody AthleteUpdateRequest request, Authentication auth) 
     {
-        athleteService.updateAthlete(athleteId, request, auth);
+        athleteService.updateAthlete(id, request, auth);
     }
 }

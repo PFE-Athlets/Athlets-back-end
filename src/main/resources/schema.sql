@@ -62,7 +62,7 @@ CREATE TABLE User_Account (
     account_status VARCHAR(10) NOT NULL DEFAULT 'Active',
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
     access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete
-    CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','A_ACTIVER')),
+    CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','Pending')),
     CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)),
     CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
 );
