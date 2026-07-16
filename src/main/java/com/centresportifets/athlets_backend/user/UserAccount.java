@@ -33,7 +33,7 @@ public class UserAccount {
     private String password;
 
     @Column(name = "account_status", nullable = false, length = 10)
-    private String accountStatus = "Active";
+    private String accountStatus;
 
     @Column(name = "account_creation_date", nullable = false)
     private LocalDate accountCreationDate = LocalDate.now();

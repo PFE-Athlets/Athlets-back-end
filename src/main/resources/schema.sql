@@ -84,17 +84,17 @@ CREATE TABLE Administrator (
 CREATE TABLE Team (
     id SERIAL PRIMARY KEY,
     sport_id INT NOT NULL,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
     CONSTRAINT fk_team_sport FOREIGN KEY (sport_id) REFERENCES Sport(id)
 );
 
 CREATE TABLE Coach (
     user_id INT PRIMARY KEY,
     access_level INT NOT NULL DEFAULT 2,
-    sport_id INT NOT NULL,
-    team_id INT NOT NULL,
+    sport_id INT,
+    team_id INT,
     title VARCHAR(50),
-    is_head_coach BOOLEAN NOT NULL,
+    is_head_coach BOOLEAN,
     
     CONSTRAINT chk_is_coach CHECK (access_level = 2), 
     CONSTRAINT fk_coach_user FOREIGN KEY (user_id, access_level) 
