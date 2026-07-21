@@ -1,9 +1,11 @@
 DROP TABLE IF EXISTS Result CASCADE;
 DROP TABLE IF EXISTS Test CASCADE;
 DROP TABLE IF EXISTS Test_Battery CASCADE;
-DROP TABLE IF EXISTS Athlete_Team CASCADE; -- Updated table name
+DROP TABLE IF EXISTS Athlete_Team CASCADE;
+DROP TABLE IF EXISTS Kine_Team CASCADE;
 DROP TABLE IF EXISTS Athlete CASCADE;
 DROP TABLE IF EXISTS Coach CASCADE;
+DROP TABLE IF EXISTS Kine CASCADE;
 DROP TABLE IF EXISTS Team CASCADE;
 DROP TABLE IF EXISTS Administrator CASCADE;
 DROP TABLE IF EXISTS User_Account CASCADE;
@@ -101,6 +103,24 @@ CREATE TABLE Coach (
         REFERENCES User_Account(id, access_level) ON DELETE CASCADE,
     CONSTRAINT fk_coach_sport FOREIGN KEY (sport_id) REFERENCES Sport(id),
     CONSTRAINT fk_coach_team FOREIGN KEY (team_id) REFERENCES Team(id)
+);
+
+CREATE TABLE Kine (
+    user_id INT PRIMARY KEY,
+    access_level INT NOT NULL DEFAULT 2,
+
+    CONSTRAINT chk_is_kine CHECK (access_level = 2),
+    CONSTRAINT fk_kine_user FOREIGN KEY (user_id, access_level) 
+        REFERENCES User_Account(id, access_level) ON DELETE CASCADE
+);
+
+CREATE TABLE Kine_Team (
+    user_id INT,
+    team_id INT,
+    
+    PRIMARY KEY (user_id, team_id),
+    CONSTRAINT fk_kine_user_id FOREIGN KEY (user_id) REFERENCES User_Account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kine_team_id FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE CASCADE
 );
 
 -- ==========================================

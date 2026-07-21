@@ -70,7 +70,7 @@ INSERT INTO Group_Table (name) VALUES
 ('Development');
 
 -- ============================================================================
--- 2. CORE USER ACCOUNTS (Explicit IDs to prevent composite key alignment drift)
+-- 2. CORE USER ACCOUNTS
 -- ============================================================================
 INSERT INTO User_Account (first_name, last_name, email, phone, username, password, account_status, access_level) VALUES 
 ('Zacharie', 'Morin', 'zmorin0@etsmtl.ca', '514-555-0101', 'zmorin0', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 1), --Password: admin1
@@ -79,7 +79,7 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 ('E.', 'Laforce', 'elaforce0@etsmtl.ca', NULL, 'elaforce0', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 1),
 ('L.', 'Seguin', 'lseguin0@etsmtl.ca', NULL, 'lseguin0', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 1),
 
-('Coach', 'Volleyball', 'coach.volleyball@etsmtl.ca', NULL, 'coach-volleyball', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
+('Coach', 'Volleyball', 'coach.volleyball@etsmtl.ca', NULL, 'coach-volleyball', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2), --Password: admin1
 ('Coach2', 'Volleyball', 'coach2.volleyball@etsmtl.ca', NULL, 'coach-volleyball2', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach3', 'Volleyball', 'coach3.volleyball@etsmtl.ca', NULL, 'coach-volleyball3', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Athlétisme', 'coach.athletisme@etsmtl.ca', NULL, 'coach-athletics', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
@@ -91,10 +91,15 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 
 ('Track', 'User1', 'trackuser1@etsmtl.ca', NULL, 'trackUser1', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3), --Password: password
 ('Track', 'User2', 'trackuser2@etsmtl.ca', NULL, 'trackUser2', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
-('Track', 'User3', 'trackuser3@etsmtl.ca', NULL, 'trackUser3', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3);
+('Track', 'User3', 'trackuser3@etsmtl.ca', NULL, 'trackUser3', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
+
+('Kiné', 'Siologue', 'kine@etsmtl.ca', NULL, 'kine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2), --Password: password
+('Martin', 'MattLekinesiologue', 'martin@etsmtl.ca', NULL, 'martinkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2),
+('LP', 'Maiscestunkinesiologue', 'lp@etsmtl.ca', NULL, 'lpkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2),
+('Senspasbon', 'Lekinequipue', 'ilpue@etsmtl.ca', NULL, 'senspasbon', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2);
 
 -- ============================================================================
--- 3. SUB-ROLE INHERITANCE ENTITIES (Admin, Coach, Athlete)
+-- 3. SUB-ROLE INHERITANCE ENTITIES (Admin, Coach, Athlete, Kinesiologist)
 -- ============================================================================
 INSERT INTO Administrator (user_id, access_level, title) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'zmorin0'), 1, 'Head System Administrator'),
@@ -123,6 +128,12 @@ INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coac
 ((SELECT id FROM User_Account WHERE username = 'coach-flag-football'), 2, (SELECT id FROM Sport WHERE name = 'Flag-Football'), (SELECT id FROM Team WHERE name = 'Piranhas Flag-Football'), 'Head Flag-Football Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-badminton'), 2, (SELECT id FROM Sport WHERE name = 'Badminton'), (SELECT id FROM Team WHERE name = 'Piranhas Badminton'), 'Head Badminton Coach', true);
 
+INSERT INTO Kine (user_id, access_level) VALUES 
+((SELECT id FROM User_Account WHERE username = 'kine'), 2),
+((SELECT id FROM User_Account WHERE username = 'martinkine'), 2),
+((SELECT id FROM User_Account WHERE username = 'lpkine'), 2),
+((SELECT id FROM User_Account WHERE username = 'senspasbon'), 2);
+
 INSERT INTO Athlete (user_id, access_level, birth_date, gender, height_meters, weight_kg, dominant_arm, dominant_leg, injury_history) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'trackUser1'), 3, '2002-03-11', 'Male', 2, 74.0, 'Right', 'Right', 'None'),
 ((SELECT id FROM User_Account WHERE username = 'trackUser2'), 3, '2003-07-22', 'Female', 1, 61.2, 'Left', 'Right', 'Slight hamstring pull 2025'),
@@ -145,6 +156,12 @@ INSERT INTO Athlete_Team_Discipline (athlete_id, team_id, discipline_id) VALUES
 ((SELECT id FROM User_Account WHERE username = 'trackUser1'), 
  (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 
  (SELECT id FROM Discipline WHERE name = 'Saut en longueur'));
+
+INSERT INTO Kine_Team (user_id, team_id) VALUES 
+((SELECT id FROM User_Account WHERE username = 'kine'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'kine'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country')),
+((SELECT id FROM User_Account WHERE username = 'martinkine'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'lpkine'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country'));
 
 -- ============================================================================
 -- 4. TESTS & PERFORMANCE RESULTS
