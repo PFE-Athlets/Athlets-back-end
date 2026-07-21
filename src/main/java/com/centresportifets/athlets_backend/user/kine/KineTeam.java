@@ -1,7 +1,6 @@
 package com.centresportifets.athlets_backend.user.kine;
 
 import com.centresportifets.athlets_backend.team.Team;
-import com.centresportifets.athlets_backend.user.UserAccount;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -23,7 +22,7 @@ public class KineTeam {
     @MapsId("kineId")
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    private UserAccount kine;
+    private Kine kine;
 
     @ToString.Exclude
     @ManyToOne

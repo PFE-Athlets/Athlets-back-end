@@ -17,6 +17,8 @@ import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
+import com.centresportifets.athlets_backend.user.kine.dto.KineDisplay;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +30,7 @@ public class TeamService {
     private final AthleteTeamRepository athleteTeamRepository;
     private final CoachRepository coachRepository;
     private final SportRepository sportRepository;
+    private final KineTeamRepository kineTeamRepository;
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
     public List<TeamDisplay> getTeams(Authentication auth) {
@@ -136,4 +139,24 @@ public class TeamService {
             return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
         }
     }
+
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    public List<KineDisplay> getKinesiologistsByTeamId(Long teamId, Authentication auth) {
+        if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
+            Coach coach = coachRepository.findByUsername(auth.getName()).get();
+
+            if (!coach.getTeam().getId().equals(teamId)) {
+                throw new SecurityException("You do not own this team.");
+            }
+        }
+
+        List<KineDisplay> kinesiologists = new ArrayList<>();
+        kineTeamRepository.findByTeamId(teamId).forEach(kineTeam -> {
+            KineDisplay kineDisplay = new KineDisplay();
+            kineDisplay.setKineId(kineTeam.getKine().getId());
+            kineDisplay.setKineName(kineTeam.getKine().getFirstName() + " " + kineTeam.getKine().getLastName());
+            kinesiologists.add(kineDisplay);
+        });
+        return kinesiologists;
+    } 
 }
