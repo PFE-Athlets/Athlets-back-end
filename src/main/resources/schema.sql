@@ -333,7 +333,7 @@ CREATE TABLE Batterie_Test (
     id_test INT NOT NULL,
 
     CONSTRAINT pk_batterie_test
-        PRIMARY KEY (id_batterie, id_test), -- Fixed column reference name
+        PRIMARY KEY (id_batterie, id_test),
 
     CONSTRAINT fk_batterie
         FOREIGN KEY (id_batterie)

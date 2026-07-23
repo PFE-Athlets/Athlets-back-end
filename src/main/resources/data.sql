@@ -143,10 +143,7 @@ INSERT INTO Athlete_Team_Discipline (athlete_id, team_id, discipline_id) VALUES
  (SELECT id FROM Discipline WHERE name = 'Saut en longueur'));
 
 -- ============================================================================
--- 4. TESTS & PERFORMANCE RESULTS
--- ============================================================================
--- ============================================================================
--- 5. Batteries de test 
+-- 4. Tests 
 -- ============================================================================
 
 INSERT INTO Unite_Mesure (nom, symbole) VALUES 
