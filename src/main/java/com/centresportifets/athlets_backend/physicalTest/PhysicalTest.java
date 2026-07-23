@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import com.centresportifets.athlets_backend.physicalTest.equipment.Equipment;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,13 +42,13 @@ public class PhysicalTest {
     private String protocol;
 
     @Column(name = "supervise", nullable = false)
-    private Integer supervised = 0;
+    private boolean supervised = false;
 
     @Column(name = "informations")
     private String informations;
 
     @Column(name = "preuve_requise", nullable = false)
-    private Integer proofRequired = 0;
+    private boolean proofRequired = false;
 
     @ManyToMany
     @JoinTable(
@@ -56,7 +56,7 @@ public class PhysicalTest {
         joinColumns = @JoinColumn(name = "id_test"),
         inverseJoinColumns = @JoinColumn(name = "id_equipement")
     )
-    private Set<Equipement> equipements = new HashSet<>();
+    private Set<Equipment> equipements = new HashSet<>();
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")

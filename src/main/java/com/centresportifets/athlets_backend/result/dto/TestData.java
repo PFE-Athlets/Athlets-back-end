@@ -33,8 +33,6 @@ public class TestData {
         this.testDate = result.getTestDate();
         this.physicalTestId = result.getTest().getId();
         this.physicalTestName = result.getTest().getName();
-        this.unit = result.getTest().getUnit();
         this.protocol = result.getTest().getProtocol();
-        this.proofNeeded = result.getTest().getProof();
     }
 }

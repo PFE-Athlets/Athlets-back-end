@@ -62,7 +62,7 @@ public class ResultService {
             throw new AccessDeniedException("You are not authorized to submit this result.");
         }
 
-        validateProofRequirements(result, resultSubmission);
+        // validateProofRequirements(result, resultSubmission);
 
         if (isMissing(resultSubmission.getResultValue())) {
             throw new IllegalArgumentException("The result value is missing for this test");
@@ -120,7 +120,7 @@ public class ResultService {
         return resultRepository.findByAthleteIdIn(athleteIds).stream().map(TestData::new).toList();
     }
 
-    private void validateProofRequirements(Result result, TestResultSubmission submission) {
+    /*private void validateProofRequirements(Result result, TestResultSubmission submission) {
         PhysicalTestProof requiredProof = PhysicalTestProof.valueOf(result.getTest().getProof());
         boolean videoMissing = isMissing(submission.getVideoProof());
         boolean photoMissing = isMissing(submission.getImageProof());
@@ -141,7 +141,7 @@ public class ResultService {
             }
             default -> {}
         }
-    }
+    }*/
 
     private boolean isMissing(String proofString) {
         return proofString == null || proofString.isBlank();

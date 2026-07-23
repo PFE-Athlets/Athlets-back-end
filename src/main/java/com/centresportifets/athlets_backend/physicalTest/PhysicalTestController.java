@@ -14,6 +14,8 @@ import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateR
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Tag(
 	name = "Physical Test controller",
@@ -45,5 +47,15 @@ public class PhysicalTestController {
     public ResponseEntity<List<PhysicalTest>> getAllPhysicalTests() {
         List<PhysicalTest> tests = physicalTestService.getPhysicalTests();
         return ResponseEntity.ok(tests);
+    }
+
+    @GetMapping("/units")
+    public String getTestUnits() {
+        return new String();
+    }
+
+    @GetMapping("/equipments")
+    public String getTestEquipments() {
+        return new String();
     }
 }

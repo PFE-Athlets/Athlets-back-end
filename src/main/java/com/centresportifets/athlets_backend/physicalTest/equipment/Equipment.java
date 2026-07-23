@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.physicalTest.equipment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 @Table(name = "Equipement")
 @Entity
-public class Equipement {
+public class Equipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

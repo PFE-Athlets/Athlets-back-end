@@ -16,7 +16,7 @@ public class PhysicalQuality {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_qualite_physique")
-    private Long id;
+    private int id;
 
     @Column(name = "nom", nullable = false, length = 100, unique = true)
     private String name;
