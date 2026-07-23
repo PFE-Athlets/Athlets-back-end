@@ -28,6 +28,9 @@ import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.Kine;
+import com.centresportifets.athlets_backend.user.kine.KineRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
 
 @RequiredArgsConstructor
 @Component("authService")
@@ -37,6 +40,8 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final CoachRepository coachRepository;
+	private final KineRepository kineRepository;
+	private final KineTeamRepository kineTeamRepository;
 	private final AthleteRepository athleteRepository;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
@@ -145,6 +150,22 @@ public class AuthService {
                        .anyMatch(at -> at.getId().getTeamId().equals(coachTeamId))
             );
         }
+
+		if (hasPermission(auth, "KINE")) {
+			Kine kine = kineRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
+		
+			List<Athlete> athletes = athleteRepository.findAllByUsernameIn(usernames);
+			for (Athlete athlete : athletes) {
+				boolean isAssociated = athlete.getAthleteTeams().stream()
+						.anyMatch(at -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), at.getId().getTeamId()));
+				if (!isAssociated) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
         
         return false;
     }
