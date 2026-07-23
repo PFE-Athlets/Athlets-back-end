@@ -183,6 +183,7 @@ public class AuthService {
 			case 1: return UserType.ADMIN;
 			case 2: return UserType.COACH;
 			case 3: return UserType.ATHLETE;
+			case 4: return UserType.KINE;
 			default: return UserType.INVALID;
 		}
 	}

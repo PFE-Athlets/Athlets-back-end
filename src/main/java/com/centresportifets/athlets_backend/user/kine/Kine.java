@@ -13,6 +13,6 @@ import lombok.EqualsAndHashCode;
 @PrimaryKeyJoinColumn(name = "user_id")
 public class Kine extends UserAccount {
     public Kine() {
-        this.setAccessLevel(2);
+        this.setAccessLevel(4);
     }
 }

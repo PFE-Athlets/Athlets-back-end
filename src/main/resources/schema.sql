@@ -63,9 +63,9 @@ CREATE TABLE User_Account (
     password VARCHAR(255) NOT NULL,
     account_status VARCHAR(10) NOT NULL DEFAULT 'Active',
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete
+    access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete, 4: Kinesiologist
     CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','Pending')),
-    CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3)),
+    CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3, 4)),
     CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
 );
 
@@ -107,9 +107,9 @@ CREATE TABLE Coach (
 
 CREATE TABLE Kine (
     user_id INT PRIMARY KEY,
-    access_level INT NOT NULL DEFAULT 2,
+    access_level INT NOT NULL DEFAULT 4,
 
-    CONSTRAINT chk_is_kine CHECK (access_level = 2),
+    CONSTRAINT chk_is_kine CHECK (access_level = 4),
     CONSTRAINT fk_kine_user FOREIGN KEY (user_id, access_level) 
         REFERENCES User_Account(id, access_level) ON DELETE CASCADE
 );

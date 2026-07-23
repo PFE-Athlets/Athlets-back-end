@@ -1,5 +1,6 @@
 package com.centresportifets.athlets_backend.user.athlete;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -28,6 +29,10 @@ import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteUpdateRequest;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.Kine;
+import com.centresportifets.athlets_backend.user.kine.KineRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -35,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 public class AthleteService {
     private final AthleteRepository athleteRepository;
     private final TeamRepository teamRepository;
+    private final KineRepository kineRepository;
+    private final KineTeamRepository kineTeamRepository;
     private final AthleteTeamRepository athleteTeamRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
@@ -67,16 +74,29 @@ public class AthleteService {
         athleteTeamRepository.save(athleteTeam);
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<AthleteData> getAllAthletes(Authentication auth){
         UserType userType = authService.getAuthenticatedUserType(auth);
 
-        if(userType == UserType.ADMIN)
-            return athleteRepository.findAll().stream().map((athlete) -> new AthleteData(athlete)).toList();
-
-        Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
-
-        return athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId()).stream().map((athlete) -> new AthleteData(athlete)).toList();
+        switch (userType) {
+            case ADMIN:
+                return athleteRepository.findAll().stream().map((athlete) -> new AthleteData(athlete)).toList();
+            case COACH:
+                Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                return athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId()).stream().map((athlete) -> new AthleteData(athlete)).toList();
+            case KINE:
+                Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                List<Athlete> athletes = new ArrayList<>();
+                kineTeamRepository.findByKineId(kine.getId())
+                    .forEach(kineTeam -> {
+                        Team team = kineTeam.getTeam();
+                        List<Athlete> teamAthletes = athleteRepository.findByAthleteTeamsTeamId(team.getId());
+                        athletes.addAll(teamAthletes);
+                    });
+                return athletes.stream().map((athlete) -> new AthleteData(athlete)).toList();
+            default:
+                throw new AccessDeniedException("This is never supposed to throw");
+        }
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")

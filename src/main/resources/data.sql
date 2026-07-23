@@ -93,10 +93,10 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 ('Track', 'User2', 'trackuser2@etsmtl.ca', NULL, 'trackUser2', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
 ('Track', 'User3', 'trackuser3@etsmtl.ca', NULL, 'trackUser3', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
 
-('Kiné', 'Siologue', 'kine@etsmtl.ca', NULL, 'kine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2), --Password: password
-('Martin', 'MattLekinesiologue', 'martin@etsmtl.ca', NULL, 'martinkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2),
-('LP', 'Maiscestunkinesiologue', 'lp@etsmtl.ca', NULL, 'lpkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2),
-('Senspasbon', 'Lekinequipue', 'ilpue@etsmtl.ca', NULL, 'senspasbon', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 2);
+('Kiné', 'Siologue', 'kine@etsmtl.ca', NULL, 'kine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4), --Password: password
+('Martin', 'MattLekinesiologue', 'martin@etsmtl.ca', NULL, 'martinkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4),
+('LP', 'Maiscestunkinesiologue', 'lp@etsmtl.ca', NULL, 'lpkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4),
+('Senspasbon', 'Lekinequipue', 'ilpue@etsmtl.ca', NULL, 'senspasbon', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4);
 
 -- ============================================================================
 -- 3. SUB-ROLE INHERITANCE ENTITIES (Admin, Coach, Athlete, Kinesiologist)
@@ -129,10 +129,10 @@ INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coac
 ((SELECT id FROM User_Account WHERE username = 'coach-badminton'), 2, (SELECT id FROM Sport WHERE name = 'Badminton'), (SELECT id FROM Team WHERE name = 'Piranhas Badminton'), 'Head Badminton Coach', true);
 
 INSERT INTO Kine (user_id, access_level) VALUES 
-((SELECT id FROM User_Account WHERE username = 'kine'), 2),
-((SELECT id FROM User_Account WHERE username = 'martinkine'), 2),
-((SELECT id FROM User_Account WHERE username = 'lpkine'), 2),
-((SELECT id FROM User_Account WHERE username = 'senspasbon'), 2);
+((SELECT id FROM User_Account WHERE username = 'kine'), 4),
+((SELECT id FROM User_Account WHERE username = 'martinkine'), 4),
+((SELECT id FROM User_Account WHERE username = 'lpkine'), 4),
+((SELECT id FROM User_Account WHERE username = 'senspasbon'), 4);
 
 INSERT INTO Athlete (user_id, access_level, birth_date, gender, height_meters, weight_kg, dominant_arm, dominant_leg, injury_history) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'trackUser1'), 3, '2002-03-11', 'Male', 2, 74.0, 'Right', 'Right', 'None'),
