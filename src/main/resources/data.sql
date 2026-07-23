@@ -178,3 +178,36 @@ INSERT INTO Qualite_Physique (nom) VALUES
 ('Mobilité'),
 ('Équilibre'),
 ('Coordination');
+
+INSERT INTO Equipement (nom_equipement) VALUES
+('Barre olympique et disques'),
+('Chronomètre électronique'),
+('Cônes de marquage'),
+('Mètre ruban'),
+('Boîte de souplesse (Sit & Reach)'),
+('Tapis de sol'),
+('Tapis roulant');
+
+INSERT INTO Tests (id_qualite_physique, nom_test, protocole, supervise, informations, preuve_requise) VALUES
+(1, '1RM Back Squat', 'Soulever le poids maximal sur une répétition avec une amplitude complète (cuisses parallèles au sol).', TRUE, 'Échauffement progressif obligatoire avant les essais.', TRUE),
+(2, 'Test Léger-Boucher (Beep Test)', 'Course navette de 20m à vitesse progressive guidée par des bips sonores jusqu''à épuisement.', TRUE, 'Prévoir une surface antidérapante.', FALSE),
+(3, 'Sprint 30m', 'Course en ligne droite sur 30m départ arrêté. Mesure du temps total.', FALSE, 'Utiliser idéalement des cellules photoélectriques.', TRUE),
+(4, 'Pro Agility 5-10-5', 'Course latérale de 5 verges à droite, 10 verges à gauche, et retour au centre.', FALSE, 'Changements de direction francs.', FALSE),
+(5, 'Sit and Reach', 'Flexion du tronc vers l''avant en position assise, jambes tendues contre la boîte de mesure.', FALSE, 'Garder les genoux parfaitement tendus.', FALSE);
+
+INSERT INTO Type_Resultat (id_test, id_unite_mesure, nom, type_donnee) VALUES
+(1, 1, 'Poids maximal levé', 'DECIMAL'),         -- 1RM Back Squat (kg)
+(2, 3, 'Palier atteint', 'ENTIER'),              -- Beep Test (reps/palier)
+(2, 6, 'Fréquence cardiaque max', 'ENTIER'),    -- Beep Test (bpm)
+(3, 2, 'Temps total 30m', 'DECIMAL'),            -- Sprint 30m (s)
+(4, 2, 'Temps de parcours', 'DECIMAL'),          -- Pro Agility (s)
+(5, 4, 'Distance atteinte', 'DECIMAL');          -- Sit and Reach (cm)
+
+INSERT INTO Test_Equipement (id_test, id_equipement, quantite_requise) VALUES
+(1, 1, 1), -- 1RM Back Squat requires 1 Barre olympique
+(2, 3, 4), -- Beep test requires 4 Cônes
+(3, 2, 1), -- Sprint 30m requires 1 Chronomètre
+(3, 3, 2), -- Sprint 30m requires 2 Cônes
+(3, 4, 1), -- Sprint 30m requires 1 Mètre ruban
+(4, 3, 3), -- Pro Agility requires 3 Cônes
+(5, 5, 1); -- Sit and Reach requires 1 Boîte de souplesse
