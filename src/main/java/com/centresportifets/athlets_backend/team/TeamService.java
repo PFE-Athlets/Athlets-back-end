@@ -17,6 +17,8 @@ import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.Kine;
+import com.centresportifets.athlets_backend.user.kine.KineRepository;
 import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
 import com.centresportifets.athlets_backend.user.kine.dto.KineDisplay;
 
@@ -31,8 +33,9 @@ public class TeamService {
     private final CoachRepository coachRepository;
     private final SportRepository sportRepository;
     private final KineTeamRepository kineTeamRepository;
+    private final KineRepository kineRepository;
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<TeamDisplay> getTeams(Authentication auth) {
         List<TeamDisplay> teamDisplays = getTeamsForUser(auth).stream().map(team -> {
             TeamDisplay teamDisplay = new TeamDisplay();
@@ -133,10 +136,20 @@ public class TeamService {
     }
     
     private List<Team> getTeamsForUser(Authentication auth) {
-        if (authService.getAuthenticatedUserType(auth) == UserType.ADMIN) {
-            return teamRepository.findAll();
-        } else {
-            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
+        switch (authService.getAuthenticatedUserType(auth)) {
+            case ADMIN:
+                return teamRepository.findAll();
+            case COACH:
+                Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                return List.of(coach.getTeam());
+            case KINE:
+                Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                return kineTeamRepository.findByKineId(kine.getId())
+                    .stream()
+                    .map(kineTeam -> kineTeam.getTeam())
+                    .toList();
+            default:
+                throw new SecurityException("You do not have permission to view teams.");
         }
     }
 

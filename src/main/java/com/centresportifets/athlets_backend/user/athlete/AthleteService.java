@@ -95,7 +95,7 @@ public class AthleteService {
                     });
                 return athletes.stream().map((athlete) -> new AthleteData(athlete)).toList();
             default:
-                throw new AccessDeniedException("This is never supposed to throw");
+                throw new SecurityException("You do not have permission to view teams.");
         }
     }
 
