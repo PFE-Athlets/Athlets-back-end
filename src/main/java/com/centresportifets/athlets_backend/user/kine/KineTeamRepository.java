@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface KineTeamRepository extends JpaRepository<KineTeam, KineTeamId> {
     List<KineTeam> findByTeamId(Long teamId);
     List<KineTeam> findByKineId(Long kineId);
+    boolean existsByKineIdAndTeamId(Long kineId, Long teamId);
 }

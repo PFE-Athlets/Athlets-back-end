@@ -53,12 +53,21 @@ public class TeamService {
         return teamDisplays;
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<SubcoachDisplay> getSubcoaches(Long teamId, Authentication auth) {
         if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
             Coach coach = coachRepository.findByUsername(auth.getName()).get();
 
             if (!coach.getTeam().getId().equals(teamId)) {
+                throw new SecurityException("You are not authorized to access this team's subcoaches.");
+            }
+        }
+
+        if (authService.getAuthenticatedUserType(auth) == UserType.KINE) {
+            Kine kine = kineRepository.findByUsername(auth.getName()).get();
+            boolean isKineAssociatedWithTeam = kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId);
+
+            if (!isKineAssociatedWithTeam) {
                 throw new SecurityException("You are not authorized to access this team's subcoaches.");
             }
         }
