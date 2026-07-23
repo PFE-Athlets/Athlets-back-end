@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateRequest;
+import com.centresportifets.athlets_backend.physicalTest.equipment.Equipment;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -50,12 +51,18 @@ public class PhysicalTestController {
     }
 
     @GetMapping("/units")
-    public String getTestUnits() {
-        return new String();
+    public List<UnitMeasure> getTestUnits() {
+        return physicalTestService.getUnits();
     }
 
     @GetMapping("/equipments")
-    public String getTestEquipments() {
-        return new String();
+    public List<Equipment> getTestEquipments() {
+        return physicalTestService.getEquipments();
     }
+
+    @GetMapping("/qualities")
+    public List<PhysicalQuality> getTestQualities() {
+        return physicalTestService.getPhysicalQualities();
+    }
+    
 }

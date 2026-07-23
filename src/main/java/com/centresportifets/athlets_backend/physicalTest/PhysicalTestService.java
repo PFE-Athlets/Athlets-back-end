@@ -84,4 +84,16 @@ public class PhysicalTestService {
             resultTypeRepository.saveAll(resultTypes);
         }
     }
+
+    public List<UnitMeasure> getUnits() {
+        return unitMeasureRepository.findAll();
+    }
+
+    public List<Equipment> getEquipments() {
+        return equipmentRepository.findAll();
+    }
+
+    public List<PhysicalQuality> getPhysicalQualities() {
+        return physicalQualityRepository.findAll();
+    }
 }
