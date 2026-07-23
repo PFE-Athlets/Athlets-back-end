@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest.dto;
+package com.centresportifets.athlets_backend.tests.dto;
 
 public record ResultTypeDTO(
     String name,

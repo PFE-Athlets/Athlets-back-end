@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.tests;
 
 public enum PhysicalTestProof {
     NONE("None"),

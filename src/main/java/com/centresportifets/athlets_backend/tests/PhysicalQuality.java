@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.tests;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

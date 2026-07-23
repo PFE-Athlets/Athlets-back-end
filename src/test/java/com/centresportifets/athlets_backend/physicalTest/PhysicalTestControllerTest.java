@@ -1,4 +1,4 @@
-// package com.centresportifets.athlets_backend.physicalTest;
+// package com.centresportifets.athlets_backend.tests;
 
 // import static org.mockito.Mockito.doNothing;
 // import static org.mockito.Mockito.when;
@@ -8,7 +8,7 @@
 // import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 // import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-// import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateRequest;
+// import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
 // import org.junit.jupiter.api.Test;
 // import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

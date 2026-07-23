@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.tests;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

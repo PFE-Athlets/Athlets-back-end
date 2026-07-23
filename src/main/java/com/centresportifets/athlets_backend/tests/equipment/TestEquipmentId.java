@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest.equipment;
+package com.centresportifets.athlets_backend.tests.equipment;
 
 import java.io.Serializable;
 import jakarta.persistence.Column;

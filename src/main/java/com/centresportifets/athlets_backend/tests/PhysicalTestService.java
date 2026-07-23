@@ -1,17 +1,21 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.tests;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateRequest;
-import com.centresportifets.athlets_backend.physicalTest.equipment.Equipment;
-import com.centresportifets.athlets_backend.physicalTest.equipment.EquipmentRepository;
-import com.centresportifets.athlets_backend.physicalTest.equipment.TestEquipment;
-import com.centresportifets.athlets_backend.physicalTest.equipment.TestEquipmentId;
-import com.centresportifets.athlets_backend.physicalTest.equipment.TestEquipmentRepository;
+import com.centresportifets.athlets_backend.tests.battery.Battery;
+import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
+import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
+import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
+import com.centresportifets.athlets_backend.tests.equipment.Equipment;
+import com.centresportifets.athlets_backend.tests.equipment.EquipmentRepository;
+import com.centresportifets.athlets_backend.tests.equipment.TestEquipment;
+import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentId;
+import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentRepository;
 import com.centresportifets.athlets_backend.sport.Sport;
 import com.centresportifets.athlets_backend.sport.SportRepository;
 
@@ -26,6 +30,7 @@ public class PhysicalTestService {
     private final TestEquipmentRepository testEquipmentRepository;
     private final UnitMeasureRepository unitMeasureRepository;
     private final ResultTypeRepository resultTypeRepository;
+    private final BatteryRepository batteryRepository;
 
     public List<PhysicalTest> getPhysicalTests(){
         return physicalTestRepository.findAll();
@@ -35,7 +40,6 @@ public class PhysicalTestService {
     public void createPhysicalTest(PhysicalTestCreateRequest request) {
         PhysicalTest newTest = new PhysicalTest();
 
-        // 1. Basic Fields
         newTest.setName(request.testName());
         newTest.setProtocol(request.protocol());
         newTest.setInformations(request.informationsSup());
@@ -83,6 +87,18 @@ public class PhysicalTestService {
 
             resultTypeRepository.saveAll(resultTypes);
         }
+    }
+
+    public void createBattery(BatteryCreateRequest request) {
+        Battery newBattery = new Battery();
+
+        newBattery.setName(request.name());
+        newBattery.setStatus(request.status());
+
+        List<PhysicalTest> physicalTests = physicalTestRepository.findAllById(request.physicalTestIds());
+        newBattery.setTests(new ArrayList<>(physicalTests));
+
+        batteryRepository.save(newBattery);
     }
 
     public List<UnitMeasure> getUnits() {

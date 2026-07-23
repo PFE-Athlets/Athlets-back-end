@@ -1,4 +1,4 @@
-package com.centresportifets.athlets_backend.physicalTest;
+package com.centresportifets.athlets_backend.tests.equipment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,18 +9,15 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
+@Table(name = "Equipement")
 @Entity
-@Table(name = "Unite_Mesure")
-public class UnitMeasure {
+public class Equipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_unite")
+    @Column(name = "id_equipement")
     private Long id;
 
-    @Column(name = "nom", nullable = false, unique = true)
+    @Column(name = "nom_equipement", nullable = false, length = 100, unique = true)
     private String name;
-
-    @Column(name = "symbole", nullable = false, unique = true)
-    private String symbol;
 }

@@ -194,19 +194,13 @@ CREATE TABLE Tests (
     id_qualite_physique INT NOT NULL,
     nom_test VARCHAR(100) NOT NULL CONSTRAINT uq_tests_nom UNIQUE,
     protocole TEXT NOT NULL,
-    supervise INT DEFAULT 0 NOT NULL,
+    supervise BOOLEAN DEFAULT FALSE NOT NULL,
     informations TEXT,
-    preuve_requise INT DEFAULT 0 NOT NULL,
+    preuve_requise BOOLEAN DEFAULT FALSE NOT NULL,
 
     CONSTRAINT fk_tests_qualite_physique
         FOREIGN KEY (id_qualite_physique)
-        REFERENCES Qualite_Physique(id_qualite_physique),
-
-    CONSTRAINT ck_tests_supervise
-        CHECK (supervise IN (0, 1)),
-
-    CONSTRAINT ck_tests_preuve_requise
-        CHECK (preuve_requise IN (0, 1))
+        REFERENCES Qualite_Physique(id_qualite_physique)
 );
 
 CREATE TABLE Type_Resultat (
@@ -315,14 +309,11 @@ CREATE TABLE Batterie (
     id_batterie SERIAL PRIMARY KEY,
     id_equipe INT NOT NULL,
     nom_batterie VARCHAR(100) NOT NULL,
-    statut INT DEFAULT 1 NOT NULL,
+    statut BOOLEAN DEFAULT FALSE NOT NULL,
 
     CONSTRAINT fk_batterie_equipe
         FOREIGN KEY (id_equipe)
         REFERENCES Team(id),
-
-    CONSTRAINT ck_batterie_statut
-        CHECK (statut IN (0, 1)),
 
     CONSTRAINT uq_batterie_equipe_nom
         UNIQUE (id_equipe, nom_batterie)

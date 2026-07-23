@@ -1,4 +1,4 @@
-// package com.centresportifets.athlets_backend.physicalTest;
+// package com.centresportifets.athlets_backend.tests;
 
 // import static org.assertj.core.api.Assertions.assertThat;
 // import static org.mockito.Mockito.*;
@@ -12,7 +12,7 @@
 // import org.mockito.Mock;
 // import org.mockito.junit.jupiter.MockitoExtension;
 
-// import com.centresportifets.athlets_backend.physicalTest.dto.PhysicalTestCreateRequest;
+// import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
 // import com.centresportifets.athlets_backend.sport.Sport;
 // import com.centresportifets.athlets_backend.sport.SportRepository;
 

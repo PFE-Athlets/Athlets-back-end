@@ -11,9 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
+import com.centresportifets.athlets_backend.tests.PhysicalTest;
+import com.centresportifets.athlets_backend.tests.PhysicalTestProof;
+import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;

@@ -1,6 +1,6 @@
-package com.centresportifets.athlets_backend.physicalTest.equipment;
+package com.centresportifets.athlets_backend.tests.equipment;
 
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
+import com.centresportifets.athlets_backend.tests.PhysicalTest;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
