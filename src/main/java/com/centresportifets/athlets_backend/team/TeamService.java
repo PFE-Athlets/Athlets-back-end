@@ -19,6 +19,7 @@ import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 import com.centresportifets.athlets_backend.user.kine.Kine;
 import com.centresportifets.athlets_backend.user.kine.KineRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeam;
 import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
 import com.centresportifets.athlets_backend.user.kine.dto.KineDisplay;
 
@@ -102,6 +103,7 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getNewCoachId(), request.getNewSubcoachesIds());
+        updateTeamKinesiologists(team, request.getNewKinesiologistsIds());
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
@@ -112,6 +114,7 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getHeadCoachId(), request.getSubcoachIds());
+        updateTeamKinesiologists(team, request.getKinesiologistIds());
     }
 
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
@@ -142,6 +145,30 @@ public class TeamService {
         coach.setHeadCoach(isHeadCoach);
         coach.setAccountStatus(team != null ? UserStatus.ACTIVE.getStatus() : UserStatus.INACTIVE.getStatus());
         coachRepository.save(coach);
+    }
+
+    private void updateTeamKinesiologists(Team team, List<Long> newKinesiologistsIds) {
+        List<Kine> previousKinesiologists = kineTeamRepository.findByTeamId(team.getId())
+                .stream()
+                .map(kineTeam -> kineTeam.getKine())
+                .toList();
+
+        for (Kine previousKinesiologist : previousKinesiologists) {
+            if (!newKinesiologistsIds.contains(previousKinesiologist.getId())) {
+                kineTeamRepository.deleteByKineIdAndTeamId(previousKinesiologist.getId(), team.getId());
+            }
+        }
+
+        for (Long newKinesiologistId : newKinesiologistsIds) {
+            if (!kineTeamRepository.existsByKineIdAndTeamId(newKinesiologistId, team.getId())) {
+                Kine newKinesiologist = kineRepository.findById(newKinesiologistId)
+                        .orElseThrow(() -> new IllegalArgumentException("New kinesiologist not found"));
+                KineTeam kineTeam = new KineTeam();
+                kineTeam.setKine(newKinesiologist);
+                kineTeam.setTeam(team);
+                kineTeamRepository.save(kineTeam);
+            }
+        }
     }
     
     private List<Team> getTeamsForUser(Authentication auth) {

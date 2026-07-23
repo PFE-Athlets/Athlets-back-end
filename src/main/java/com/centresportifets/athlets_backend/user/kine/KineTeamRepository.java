@@ -8,4 +8,5 @@ public interface KineTeamRepository extends JpaRepository<KineTeam, KineTeamId> 
     List<KineTeam> findByTeamId(Long teamId);
     List<KineTeam> findByKineId(Long kineId);
     boolean existsByKineIdAndTeamId(Long kineId, Long teamId);
+    void deleteByKineIdAndTeamId(Long kineId, Long teamId);
 }
