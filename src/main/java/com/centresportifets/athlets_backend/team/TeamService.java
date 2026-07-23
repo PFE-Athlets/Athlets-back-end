@@ -114,7 +114,7 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getHeadCoachId(), request.getSubcoachIds());
-        updateTeamKinesiologists(team, request.getKinesiologistIds());
+        updateTeamKinesiologists(team, request.getKineIds());
     }
 
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
@@ -147,19 +147,19 @@ public class TeamService {
         coachRepository.save(coach);
     }
 
-    private void updateTeamKinesiologists(Team team, List<Long> newKinesiologistsIds) {
+    private void updateTeamKinesiologists(Team team, List<Long> newKineIds) {
         List<Kine> previousKinesiologists = kineTeamRepository.findByTeamId(team.getId())
                 .stream()
                 .map(kineTeam -> kineTeam.getKine())
                 .toList();
 
         for (Kine previousKinesiologist : previousKinesiologists) {
-            if (!newKinesiologistsIds.contains(previousKinesiologist.getId())) {
+            if (!newKineIds.contains(previousKinesiologist.getId())) {
                 kineTeamRepository.deleteByKineIdAndTeamId(previousKinesiologist.getId(), team.getId());
             }
         }
 
-        for (Long newKinesiologistId : newKinesiologistsIds) {
+        for (Long newKinesiologistId : newKineIds) {
             if (!kineTeamRepository.existsByKineIdAndTeamId(newKinesiologistId, team.getId())) {
                 Kine newKinesiologist = kineRepository.findById(newKinesiologistId)
                         .orElseThrow(() -> new IllegalArgumentException("New kinesiologist not found"));

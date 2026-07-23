@@ -10,5 +10,5 @@ public class TeamCreationRequest {
     Long sportId;
     Long headCoachId;
     List<Long> subcoachIds;
-    List<Long> kinesiologistIds;
+    List<Long> kineIds;
 }
