@@ -114,7 +114,7 @@ public class AthleteService {
      * team positions and sports disciplines.
      */
     @Transactional
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public void updateAthlete(Long athleteId, AthleteUpdateRequest request, Authentication auth) {
         Athlete athlete = athleteRepository.findById(athleteId)
                 .orElseThrow(() -> new IllegalArgumentException("Athlete not found with ID: " + athleteId));
