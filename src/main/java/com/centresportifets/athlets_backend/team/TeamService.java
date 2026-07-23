@@ -17,6 +17,11 @@ import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.Kine;
+import com.centresportifets.athlets_backend.user.kine.KineRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeam;
+import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
+import com.centresportifets.athlets_backend.user.kine.dto.KineDisplay;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,8 +33,10 @@ public class TeamService {
     private final AthleteTeamRepository athleteTeamRepository;
     private final CoachRepository coachRepository;
     private final SportRepository sportRepository;
+    private final KineTeamRepository kineTeamRepository;
+    private final KineRepository kineRepository;
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<TeamDisplay> getTeams(Authentication auth) {
         List<TeamDisplay> teamDisplays = getTeamsForUser(auth).stream().map(team -> {
             TeamDisplay teamDisplay = new TeamDisplay();
@@ -47,12 +54,21 @@ public class TeamService {
         return teamDisplays;
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<SubcoachDisplay> getSubcoaches(Long teamId, Authentication auth) {
         if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
             Coach coach = coachRepository.findByUsername(auth.getName()).get();
 
             if (!coach.getTeam().getId().equals(teamId)) {
+                throw new SecurityException("You are not authorized to access this team's subcoaches.");
+            }
+        }
+
+        if (authService.getAuthenticatedUserType(auth) == UserType.KINE) {
+            Kine kine = kineRepository.findByUsername(auth.getName()).get();
+            boolean isKineAssociatedWithTeam = kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId);
+
+            if (!isKineAssociatedWithTeam) {
                 throw new SecurityException("You are not authorized to access this team's subcoaches.");
             }
         }
@@ -87,6 +103,7 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getNewCoachId(), request.getNewSubcoachesIds());
+        updateTeamKinesiologists(team, request.getNewKinesiologistsIds());
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
@@ -97,6 +114,7 @@ public class TeamService {
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getHeadCoachId(), request.getSubcoachIds());
+        updateTeamKinesiologists(team, request.getKineIds());
     }
 
     private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
@@ -128,12 +146,75 @@ public class TeamService {
         coach.setAccountStatus(team != null ? UserStatus.ACTIVE.getStatus() : UserStatus.INACTIVE.getStatus());
         coachRepository.save(coach);
     }
-    
-    private List<Team> getTeamsForUser(Authentication auth) {
-        if (authService.getAuthenticatedUserType(auth) == UserType.ADMIN) {
-            return teamRepository.findAll();
-        } else {
-            return List.of(coachRepository.findByUsername(auth.getName()).get().getTeam());
+
+    private void updateTeamKinesiologists(Team team, List<Long> newKineIds) {
+        List<Kine> previousKinesiologists = kineTeamRepository.findByTeamId(team.getId())
+                .stream()
+                .map(kineTeam -> kineTeam.getKine())
+                .toList();
+
+        for (Kine previousKinesiologist : previousKinesiologists) {
+            if (!newKineIds.contains(previousKinesiologist.getId())) {
+                kineTeamRepository.deleteByKineIdAndTeamId(previousKinesiologist.getId(), team.getId());
+            }
+        }
+
+        for (Long newKinesiologistId : newKineIds) {
+            if (!kineTeamRepository.existsByKineIdAndTeamId(newKinesiologistId, team.getId())) {
+                Kine newKinesiologist = kineRepository.findById(newKinesiologistId)
+                        .orElseThrow(() -> new IllegalArgumentException("New kinesiologist not found"));
+                KineTeam kineTeam = new KineTeam();
+                kineTeam.setKine(newKinesiologist);
+                kineTeam.setTeam(team);
+                kineTeamRepository.save(kineTeam);
+            }
         }
     }
+    
+    private List<Team> getTeamsForUser(Authentication auth) {
+        switch (authService.getAuthenticatedUserType(auth)) {
+            case ADMIN:
+                return teamRepository.findAll();
+            case COACH:
+                Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                return List.of(coach.getTeam());
+            case KINE:
+                Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
+                return kineTeamRepository.findByKineId(kine.getId())
+                    .stream()
+                    .map(kineTeam -> kineTeam.getTeam())
+                    .toList();
+            default:
+                throw new SecurityException("You do not have permission to view teams.");
+        }
+    }
+
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
+    public List<KineDisplay> getKinesiologistsByTeamId(Long teamId, Authentication auth) {
+        if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
+            Coach coach = coachRepository.findByUsername(auth.getName()).get();
+
+            if (!coach.getTeam().getId().equals(teamId)) {
+                throw new SecurityException("You do not own this team.");
+            }
+        }
+
+        if (authService.getAuthenticatedUserType(auth) == UserType.KINE) {
+            Kine kine = kineRepository.findByUsername(auth.getName()).get();
+            boolean isKineAssociatedWithTeam = kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId);
+
+            if (!isKineAssociatedWithTeam) {
+                throw new SecurityException("You are not authorized to access this team's kinesiologists.");
+            }
+        }
+
+        List<KineDisplay> kinesiologists = new ArrayList<>();
+        kineTeamRepository.findByTeamId(teamId).forEach(kineTeam -> {
+            KineDisplay kineDisplay = new KineDisplay();
+            kineDisplay.setKineId(kineTeam.getKine().getId());
+            kineDisplay.setKineName(kineTeam.getKine().getFirstName() + " " + kineTeam.getKine().getLastName());
+            kinesiologists.add(kineDisplay);
+        });
+        return kinesiologists;
+    } 
 }

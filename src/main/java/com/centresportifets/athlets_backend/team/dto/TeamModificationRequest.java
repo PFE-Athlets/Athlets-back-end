@@ -10,4 +10,5 @@ public class TeamModificationRequest {
     String newTeamName;
     Long newCoachId;
     List<Long> newSubcoachesIds;
+    List<Long> newKinesiologistsIds;
 }
