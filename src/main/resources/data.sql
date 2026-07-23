@@ -80,8 +80,6 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 ('L.', 'Seguin', 'lseguin0@etsmtl.ca', NULL, 'lseguin0', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 1),
 
 ('Coach', 'Volleyball', 'coach.volleyball@etsmtl.ca', NULL, 'coach-volleyball', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
-('Coach2', 'Volleyball', 'coach2.volleyball@etsmtl.ca', NULL, 'coach-volleyball2', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
-('Coach3', 'Volleyball', 'coach3.volleyball@etsmtl.ca', NULL, 'coach-volleyball3', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Athlétisme', 'coach.athletisme@etsmtl.ca', NULL, 'coach-athletics', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Rugby', 'coach.rugby@etsmtl.ca', NULL, 'coach-rugby', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Hockey', 'coach.hockey@etsmtl.ca', NULL, 'coach-hockey', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
@@ -114,8 +112,6 @@ INSERT INTO Team (sport_id, name) VALUES
 
 INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coach) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'coach-volleyball'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Head Volleyball Coach', true),
-((SELECT id FROM User_Account WHERE username = 'coach-volleyball2'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
-((SELECT id FROM User_Account WHERE username = 'coach-volleyball3'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
 ((SELECT id FROM User_Account WHERE username = 'coach-athletics'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-rugby'), 2, (SELECT id FROM Sport WHERE name = 'Rugby'), (SELECT id FROM Team WHERE name = 'Piranhas Rugby'), 'Head Rugby Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-hockey'), 2, (SELECT id FROM Sport WHERE name = 'Hockey'), (SELECT id FROM Team WHERE name = 'Piranhas Hockey'), 'Head Hockey Coach', true),
@@ -149,25 +145,39 @@ INSERT INTO Athlete_Team_Discipline (athlete_id, team_id, discipline_id) VALUES
 -- ============================================================================
 -- 4. TESTS & PERFORMANCE RESULTS
 -- ============================================================================
-INSERT INTO Test (name, unit_of_measure, protocol, proof_needed) VALUES 
-('1RM Back Squat', 'Kg', 'Maximum weight lifted for one repetition cleanly. (Force)', 'Photo'),
-('Beep Test', 'Repetitions', 'Multi-stage 20m shuttle run test to volitional exhaustion. (Endurance)', 'None'),
-('30m Sprint', 'Seconds', 'Electronic timing gates or video analysis from stationary start. (Vitesse)', 'Video'),
-('Pro Agility 5-10-5', 'Seconds', 'Lateral shuttle running tracking quick change of direction. (Agilite)', 'None'),
-('Sit and Reach', 'Metres', 'Standard flexibility box baseline metrics. (Souplesse)', 'Photo');
+-- ============================================================================
+-- 5. Batteries de test 
+-- ============================================================================
 
-INSERT INTO Test_Sport (test_id, sport_id) VALUES 
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Force test
-((SELECT id FROM Test WHERE name = 'Beep Test'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Endurance test
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Vitesse test
-((SELECT id FROM Test WHERE name = 'Pro Agility 5-10-5'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Agilite test
-((SELECT id FROM Test WHERE name = 'Sit and Reach'), (SELECT id FROM Sport WHERE name = 'Athlétisme')); -- Souplesse test
+INSERT INTO Unite_Mesure (nom, symbole) VALUES 
+('Kilogramme', 'kg'),
+('Centimètre', 'cm'),
+('Seconde', 's'),
+('Minute', 'min'),
+('Heure', 'h'),
+('Répétition', 'rep'),
+('Pourcentage', '%'),
+('Watt', 'W'),
+('Pouce', 'po'),
+('Mètre', 'm'),
+('Livre', 'lb'),
+('Newton-seconde', 'N.s'),
+('Newton par kilogramme', 'N/kg'),
+('Watt par kilogramme', 'W/kg'),
+('Kilomètre par heure', 'km/h'),
+('Mètre par seconde', 'm/s'),
+('Battement par minute', 'bpm');
 
-INSERT INTO Result (test_id, athlete_id, result_value, status, test_date, comment_text) VALUES 
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '140', 'Approved', '2026-06-10', 'Exceeded personal best by 5kg.'),
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '145', 'Rejected', '2026-06-12', 'Depth was incomplete during lift attempt.'),
-((SELECT id FROM Test WHERE name = 'Beep Test'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '11.5', 'Approved', '2026-06-15', 'Great conditioning phase results.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.88', 'Approved', '2026-06-18', 'Strong block start mechanics.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.82', 'Pending approval', '2026-06-29', 'Awaiting video validation review by coach.'),
-((SELECT id FROM Test WHERE name = 'Pro Agility 5-10-5'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '4.25', 'Approved', '2026-06-20', 'Good footwork on secondary cut.'),
-((SELECT id FROM Test WHERE name = 'Sit and Reach'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '0.18', 'Pending approval', '2026-06-30', 'Improving lower back flexibility.');
+INSERT INTO Qualite_Physique (nom) VALUES 
+('Force maximale des membres inférieurs'),
+('Force maximale des membres supérieurs'),
+('Puissance verticale'),
+('Puissance horizontale'),
+('Vitesse'),
+('Agilité'),
+('Endurance anaérobie'),
+('Composition corporelle'),
+('Endurance aérobie'),
+('Mobilité'),
+('Équilibre'),
+('Coordination');
