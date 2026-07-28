@@ -47,7 +47,7 @@ public class PhysicalTestController {
 	 * @return a list of every physical test in the database
 	 */
     @GetMapping
-    public ResponseEntity<List<PhysicalTest>> getAllPhysicalTests() {
+    public ResponseEntity<List<PhysicalTestDTO>> getAllPhysicalTests() {
         List<PhysicalTest> tests = physicalTestService.getPhysicalTests();
         return ResponseEntity.ok(tests);
     }
