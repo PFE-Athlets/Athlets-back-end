@@ -15,10 +15,7 @@ import com.centresportifets.athlets_backend.sport.discipline.Discipline;
 import com.centresportifets.athlets_backend.sport.discipline.DisciplineRepository;
 import com.centresportifets.athlets_backend.sport.position.Position;
 import com.centresportifets.athlets_backend.sport.position.PositionRepository;
-import com.centresportifets.athlets_backend.team.AthleteTeam;
-import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.team.AthleteTeamDisciplineRepository;
-import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
 import com.centresportifets.athlets_backend.team.AthleteTeamPositionRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.team.Team;
@@ -114,7 +111,8 @@ public class AthleteService {
             throw new AccessDeniedException("You do not have permission to manage this athlete.");
         }
 
-        if (!authService.canManageTeams(auth, request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList())) {
+        List<Long> teamIds = request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList();
+        if (!authService.canManageTeams(auth, teamIds)) {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
 
@@ -123,9 +121,19 @@ public class AthleteService {
         athlete.setInjuryHistory(request.getInjuryHistory());
         athleteRepository.save(athlete);
 
-        athleteTeamRepository.deleteByAthlete_Id(athleteId);
-        athleteTeamPositionRepository.deleteByAthlete_Id(athleteId);
-        athleteTeamDisciplineRepository.deleteByAthlete_Id(athleteId);
+        athleteTeamRepository.deleteByAthlete_IdAndTeamIdNotIn(athleteId, teamIds);
+
+        List<Long> disciplineIds = request.getTeamsInfo().stream()
+                .map(TeamInfoData::getDisciplineId)
+                .filter(id -> id != null)
+                .toList();
+        athleteTeamDisciplineRepository.deleteByAthlete_IdAndDiscipline_IdNotInAndTeam_IdNotIn(athleteId, disciplineIds, teamIds);
+
+        List<Long> positionIds = request.getTeamsInfo().stream()
+                .map(TeamInfoData::getPositionId)
+                .filter(id -> id != null)
+                .toList();
+        athleteTeamPositionRepository.deleteByAthlete_IdAndPosition_IdNotInAndTeam_IdNotIn(athleteId, positionIds, teamIds);
 
         createAthleteTeamsAssociations(athlete, request.getTeamsInfo());
     }
@@ -136,10 +144,7 @@ public class AthleteService {
             Team team = teamRepository.findById(teamInfo.getTeamId())
                     .orElseThrow(() -> new IllegalArgumentException("Team id not found: " + teamInfo.getTeamId()));
             
-            AthleteTeam athleteTeam = new AthleteTeam();
-            athleteTeam.setAthlete(athlete);
-            athleteTeam.setTeam(team);
-            athleteTeamRepository.save(athleteTeam);
+            athleteTeamRepository.createIfNotExists(athlete.getId(), team.getId());
 
             if (teamInfo.getPositionId() != null) {
                 Position position = positionRepository.findById(teamInfo.getPositionId())
@@ -148,11 +153,7 @@ public class AthleteService {
                     throw new IllegalArgumentException("Position does not belong to the same sport as the team.");
                 }
     
-                AthleteTeamPosition athleteTeamPosition = new AthleteTeamPosition();
-                athleteTeamPosition.setAthlete(athlete);
-                athleteTeamPosition.setTeam(team);
-                athleteTeamPosition.setPosition(position);
-                athleteTeamPositionRepository.save(athleteTeamPosition);
+                athleteTeamPositionRepository.createIfNotExists(athlete.getId(), position.getId(), team.getId());
             }
 
             if (teamInfo.getDisciplineId() != null) {
@@ -162,11 +163,7 @@ public class AthleteService {
                     throw new IllegalArgumentException("Discipline does not belong to the same sport as the team.");
                 }
     
-                AthleteTeamDiscipline athleteTeamDiscipline = new AthleteTeamDiscipline();
-                athleteTeamDiscipline.setAthlete(athlete);
-                athleteTeamDiscipline.setTeam(team);
-                athleteTeamDiscipline.setDiscipline(discipline);
-                athleteTeamDisciplineRepository.save(athleteTeamDiscipline);
+                athleteTeamDisciplineRepository.createIfNotExists(athlete.getId(), discipline.getId(), team.getId());
             }
         }
     }
