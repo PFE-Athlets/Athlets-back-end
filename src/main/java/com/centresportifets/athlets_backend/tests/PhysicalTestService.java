@@ -11,6 +11,7 @@ import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
+import com.centresportifets.athlets_backend.tests.dto.PhysicalTestResponseDTO;
 import com.centresportifets.athlets_backend.tests.equipment.Equipment;
 import com.centresportifets.athlets_backend.tests.equipment.EquipmentRepository;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipment;
@@ -32,8 +33,10 @@ public class PhysicalTestService {
     private final ResultTypeRepository resultTypeRepository;
     private final BatteryRepository batteryRepository;
 
-    public List<PhysicalTest> getPhysicalTests(){
-        return physicalTestRepository.findAll();
+    public List<PhysicalTestResponseDTO> getPhysicalTests(){
+        return physicalTestRepository.findAll().stream()
+                .map(PhysicalTestResponseDTO::fromEntity)
+                .toList();
     }
 
     @Transactional

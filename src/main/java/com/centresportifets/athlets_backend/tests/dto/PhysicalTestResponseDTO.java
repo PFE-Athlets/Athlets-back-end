@@ -37,18 +37,18 @@ public record PhysicalTestResponseDTO(
 
         List<EquipmentDTO> equipmentDTOs = test.getEquipements() != null
             ? test.getEquipements().stream()
-                .map(e -> new EquipmentDTO(e.getId(), e.getName()))
+                .map(e -> new EquipmentDTO(e.getId().intValue(), e.getName()))
                 .toList()
             : List.of();
 
         List<ResultTypeDTO> resultTypeDTOs = test.getTypesResultat() != null
             ? test.getTypesResultat().stream()
                 .map(rt -> new ResultTypeDTO(
-                    rt.getId(),
+                    rt.getId().intValue(),
                     rt.getName(),
                     rt.getDataType(),
-                    rt.getUnitMesure() != null ? rt.getUnitMesure().getName() : null,
-                    rt.getUnitMesure() != null ? rt.getUnitMesure().getSymbol() : null
+                    rt.getUnitMeasure() != null ? rt.getUnitMeasure().getName() : null,
+                    rt.getUnitMeasure() != null ? rt.getUnitMeasure().getSymbol() : null
                 ))
                 .toList()
             : List.of();

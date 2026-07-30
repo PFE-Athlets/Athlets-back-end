@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
+import com.centresportifets.athlets_backend.tests.dto.PhysicalTestResponseDTO;
 import com.centresportifets.athlets_backend.tests.equipment.Equipment;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +48,8 @@ public class PhysicalTestController {
 	 * @return a list of every physical test in the database
 	 */
     @GetMapping
-    public ResponseEntity<List<PhysicalTestDTO>> getAllPhysicalTests() {
-        List<PhysicalTest> tests = physicalTestService.getPhysicalTests();
-        return ResponseEntity.ok(tests);
+    public List<PhysicalTestResponseDTO> getAllPhysicalTests() {
+        return physicalTestService.getPhysicalTests();
     }
 
     @GetMapping("/units")
