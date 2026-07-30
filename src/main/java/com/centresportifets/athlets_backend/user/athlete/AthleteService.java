@@ -15,7 +15,9 @@ import com.centresportifets.athlets_backend.sport.discipline.Discipline;
 import com.centresportifets.athlets_backend.sport.discipline.DisciplineRepository;
 import com.centresportifets.athlets_backend.sport.position.Position;
 import com.centresportifets.athlets_backend.sport.position.PositionRepository;
+import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.team.AthleteTeamDisciplineRepository;
+import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
 import com.centresportifets.athlets_backend.team.AthleteTeamPositionRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.team.Team;
@@ -59,7 +61,7 @@ public class AthleteService {
         Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
         athleteRepository.save(athlete);
 
-        createAthleteTeamsAssociations(athlete, request.getTeamsInfo());
+        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), new ArrayList<>(), new ArrayList<>());
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
@@ -121,25 +123,18 @@ public class AthleteService {
         athlete.setInjuryHistory(request.getInjuryHistory());
         athleteRepository.save(athlete);
 
-        athleteTeamRepository.deleteByAthlete_IdAndTeamIdNotIn(athleteId, teamIds);
+        athleteTeamRepository.deleteByAthlete_IdAndTeam_IdNotIn(athleteId, teamIds);
 
-        List<Long> disciplineIds = request.getTeamsInfo().stream()
-                .map(TeamInfoData::getDisciplineId)
-                .filter(id -> id != null)
-                .toList();
-        athleteTeamDisciplineRepository.deleteByAthlete_IdAndDiscipline_IdNotInAndTeam_IdNotIn(athleteId, disciplineIds, teamIds);
+        List<Long> updatedOrNewDisciplineIds = new ArrayList<>();
+        List<Long> updatedOrNewPositionIds = new ArrayList<>();
+        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), updatedOrNewDisciplineIds, updatedOrNewPositionIds);
 
-        List<Long> positionIds = request.getTeamsInfo().stream()
-                .map(TeamInfoData::getPositionId)
-                .filter(id -> id != null)
-                .toList();
-        athleteTeamPositionRepository.deleteByAthlete_IdAndPosition_IdNotInAndTeam_IdNotIn(athleteId, positionIds, teamIds);
-
-        createAthleteTeamsAssociations(athlete, request.getTeamsInfo());
+        athleteTeamDisciplineRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewDisciplineIds);
+        athleteTeamPositionRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewPositionIds);
     }
 
     @Transactional
-    private void createAthleteTeamsAssociations(Athlete athlete, List<TeamInfoData> teamsInfo) {
+    private void createAthleteTeamsAssociations(Athlete athlete, List<TeamInfoData> teamsInfo, List<Long> updatedOrNewDisciplineIds, List<Long> updatedOrNewPositionIds) {
         for (TeamInfoData teamInfo : teamsInfo) {
             Team team = teamRepository.findById(teamInfo.getTeamId())
                     .orElseThrow(() -> new IllegalArgumentException("Team id not found: " + teamInfo.getTeamId()));
@@ -154,6 +149,8 @@ public class AthleteService {
                 }
     
                 athleteTeamPositionRepository.createIfNotExists(athlete.getId(), position.getId(), team.getId());
+                AthleteTeamPosition athleteTeamPosition = athleteTeamPositionRepository.findByAthlete_IdAndPosition_IdAndTeam_Id(athlete.getId(), position.getId(), team.getId());
+                updatedOrNewPositionIds.add(athleteTeamPosition.getId());
             }
 
             if (teamInfo.getDisciplineId() != null) {
@@ -164,6 +161,8 @@ public class AthleteService {
                 }
     
                 athleteTeamDisciplineRepository.createIfNotExists(athlete.getId(), discipline.getId(), team.getId());
+                AthleteTeamDiscipline athleteTeamDiscipline = athleteTeamDisciplineRepository.findByAthlete_IdAndDiscipline_IdAndTeam_Id(athlete.getId(), discipline.getId(), team.getId());
+                updatedOrNewDisciplineIds.add(athleteTeamDiscipline.getId());
             }
         }
     }

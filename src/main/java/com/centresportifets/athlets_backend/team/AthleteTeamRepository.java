@@ -12,7 +12,9 @@ public interface AthleteTeamRepository extends JpaRepository<AthleteTeam, Athlet
     int countByTeamId(Long teamId);
 
     @Transactional
-    void deleteByAthlete_IdAndTeamIdNotIn(Long athleteId, List<Long> teamIds);
+    @Modifying
+    @Query("DELETE FROM AthleteTeam at WHERE at.athlete.id = :athleteId AND at.team.id NOT IN :teamIds")
+    void deleteByAthlete_IdAndTeam_IdNotIn(@Param("athleteId") Long athleteId, @Param("teamIds") List<Long> teamIds);
 
     @Transactional
     @Modifying
