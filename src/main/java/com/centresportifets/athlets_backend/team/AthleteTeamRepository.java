@@ -4,4 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AthleteTeamRepository extends JpaRepository<AthleteTeam, AthleteTeamId> {
     int countByTeamId(Long teamId);
+    void deleteByAthlete_Id(Long athleteId);
 }

@@ -126,6 +126,36 @@ public class AuthService {
 		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
 	}
 
+	public boolean canManageTeams(Authentication auth, List<Long> teamIds) {
+		if (teamIds == null || teamIds.isEmpty()) {
+			throw new IllegalArgumentException("Team IDs list cannot be null or empty.");
+		}
+
+		if (hasPermission(auth, "ADMIN")) {
+			return true;
+		}
+
+		if (hasPermission(auth, "COACH")) {
+			Coach coach = coachRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
+
+			if (teamIds.size() > 1) {
+				throw new IllegalArgumentException("Coaches can only manage one team at a time.");
+			}
+
+			return teamIds.get(0).equals(coach.getTeam().getId());
+		}
+
+		if (hasPermission(auth, "KINE")) {
+			Kine kine = kineRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
+
+			return teamIds.stream().allMatch(teamId -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId));
+		}
+
+		return false;
+	}
+
 	/**
      * Helper to verify if the authenticated user has either ADMIN role OR 
      * is a COACH who manages ALL of the athletes specified by their usernames.

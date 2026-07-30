@@ -3,6 +3,8 @@ package com.centresportifets.athlets_backend.user.athlete.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -35,11 +37,5 @@ public class AthleteCreateRequest {
     @Schema(defaultValue = "No major injuries")
     private String injuryHistory;
 
-    @Schema(defaultValue = "Golf1")
-    private String athleteTeamName;
-
-    @Schema(defaultValue = "7")
-    private String position;
-    @Schema(defaultValue = "Sprint")
-    private String discipline;
+    private List<TeamInfoData> teamsInfo;
 }
