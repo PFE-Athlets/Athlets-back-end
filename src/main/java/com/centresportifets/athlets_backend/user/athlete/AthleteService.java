@@ -15,7 +15,6 @@ import com.centresportifets.athlets_backend.sport.discipline.Discipline;
 import com.centresportifets.athlets_backend.sport.discipline.DisciplineRepository;
 import com.centresportifets.athlets_backend.sport.position.Position;
 import com.centresportifets.athlets_backend.sport.position.PositionRepository;
-import com.centresportifets.athlets_backend.team.AthleteTeam;
 import com.centresportifets.athlets_backend.team.AthleteTeamDiscipline;
 import com.centresportifets.athlets_backend.team.AthleteTeamDisciplineRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamPosition;
@@ -27,6 +26,7 @@ import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteUpdateRequest;
+import com.centresportifets.athlets_backend.user.athlete.dto.TeamInfoData;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 import com.centresportifets.athlets_backend.user.kine.Kine;
@@ -51,27 +51,17 @@ public class AthleteService {
     private final PositionRepository positionRepository;
     private final DisciplineRepository disciplineRepository;
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public void createAthlete(AthleteCreateRequest request, Authentication auth) {
-        String teamName = request.getAthleteTeamName();
-        if (authService.getAuthenticatedUserType(auth) == UserType.COACH) {
-            String coachTeamName = coachRepository.findByUsername(auth.getName()).get().getTeam().getName();
-            if (!coachTeamName.equals(request.getAthleteTeamName())) {
-                throw new IllegalArgumentException("Coaches can only create athletes for their own team.");
-            }
+        if (!authService.canManageTeams(auth, request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList())) {
+            throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
-        
-        Team team = teamRepository.findByName(teamName)
-            .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamName));
 
         Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
-        athlete = athleteRepository.save(athlete);
+        athleteRepository.save(athlete);
 
-        AthleteTeam athleteTeam = new AthleteTeam();
-        athleteTeam.setAthlete(athlete);
-        athleteTeam.setTeam(team);
-        // TODO set discipline and position fields if provided
-        athleteTeamRepository.save(athleteTeam);
+        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), new ArrayList<>(), new ArrayList<>());
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
@@ -123,38 +113,56 @@ public class AthleteService {
             throw new AccessDeniedException("You do not have permission to manage this athlete.");
         }
 
-        UserType callerType = authService.getAuthenticatedUserType(auth);
+        List<Long> teamIds = request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList();
+        if (!authService.canManageTeams(auth, teamIds)) {
+            throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
+        }
 
-        List<Long> teamsToProcess = callerType == UserType.COACH ? 
-            List.of(coachRepository.findByUsername(auth.getName())
-            .orElseThrow(() -> new IllegalArgumentException("Current coach could not be found.")).getTeam().getId()) 
-            : request.getTeamIds();
-
-        if (request.getPhone() != null) athlete.setPhone(request.getPhone());
-        if (request.getWeightKg() != null) athlete.setWeightKg(request.getWeightKg());
-        if (request.getInjuryHistory() != null) athlete.setInjuryHistory(request.getInjuryHistory());
+        athlete.setPhone(request.getPhone());
+        athlete.setWeightKg(request.getWeightKg());
+        athlete.setInjuryHistory(request.getInjuryHistory());
         athleteRepository.save(athlete);
 
-        athleteTeamPositionRepository.deleteByPosition_IdNotInAndAthlete_IdAndTeam_IdNotIn(request.getPositionIds(), athlete.getId(), request.getTeamIds());
-        athleteTeamDisciplineRepository.deleteByDiscipline_IdNotInAndAthlete_IdAndTeam_IdNotIn(request.getDisciplineIds(), athlete.getId(), request.getTeamIds());
+        athleteTeamRepository.deleteByAthlete_IdAndTeam_IdNotIn(athleteId, teamIds);
 
-        for (Long teamId : teamsToProcess) {
-            Team team = teamRepository.getReferenceById(teamId);
+        List<Long> updatedOrNewDisciplineIds = new ArrayList<>();
+        List<Long> updatedOrNewPositionIds = new ArrayList<>();
+        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), updatedOrNewDisciplineIds, updatedOrNewPositionIds);
 
-            if (request.getPositionIds() != null) {
-                for (Long posId : request.getPositionIds()) {
-                    Position position = positionRepository.findById(posId)
-                            .orElseThrow(() -> new IllegalArgumentException("Position not found: " + posId));
-                    athleteTeamPositionRepository.save(new AthleteTeamPosition(null, athlete, team, position));
+        athleteTeamDisciplineRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewDisciplineIds);
+        athleteTeamPositionRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewPositionIds);
+    }
+
+    @Transactional
+    private void createAthleteTeamsAssociations(Athlete athlete, List<TeamInfoData> teamsInfo, List<Long> updatedOrNewDisciplineIds, List<Long> updatedOrNewPositionIds) {
+        for (TeamInfoData teamInfo : teamsInfo) {
+            Team team = teamRepository.findById(teamInfo.getTeamId())
+                    .orElseThrow(() -> new IllegalArgumentException("Team id not found: " + teamInfo.getTeamId()));
+            
+            athleteTeamRepository.createIfNotExists(athlete.getId(), team.getId());
+
+            if (teamInfo.getPositionId() != null) {
+                Position position = positionRepository.findById(teamInfo.getPositionId())
+                        .orElseThrow(() -> new IllegalArgumentException("Position not found: " + teamInfo.getPositionId()));
+                if (position.getSport().getId() != team.getSport().getId()) {
+                    throw new IllegalArgumentException("Position does not belong to the same sport as the team.");
                 }
+    
+                athleteTeamPositionRepository.createIfNotExists(athlete.getId(), position.getId(), team.getId());
+                AthleteTeamPosition athleteTeamPosition = athleteTeamPositionRepository.findByAthlete_IdAndPosition_IdAndTeam_Id(athlete.getId(), position.getId(), team.getId());
+                updatedOrNewPositionIds.add(athleteTeamPosition.getId());
             }
 
-            if (request.getDisciplineIds() != null) {
-                for (Long discId : request.getDisciplineIds()) {
-                    Discipline discipline = disciplineRepository.findById(discId)
-                            .orElseThrow(() -> new IllegalArgumentException("Discipline not found: " + discId));
-                    athleteTeamDisciplineRepository.save(new AthleteTeamDiscipline(null, athlete, team, discipline));
+            if (teamInfo.getDisciplineId() != null) {
+                Discipline discipline = disciplineRepository.findById(teamInfo.getDisciplineId())
+                        .orElseThrow(() -> new IllegalArgumentException("Discipline not found: " + teamInfo.getDisciplineId()));
+                if (discipline.getSport().getId() != team.getSport().getId()) {
+                    throw new IllegalArgumentException("Discipline does not belong to the same sport as the team.");
                 }
+    
+                athleteTeamDisciplineRepository.createIfNotExists(athlete.getId(), discipline.getId(), team.getId());
+                AthleteTeamDiscipline athleteTeamDiscipline = athleteTeamDisciplineRepository.findByAthlete_IdAndDiscipline_IdAndTeam_Id(athlete.getId(), discipline.getId(), team.getId());
+                updatedOrNewDisciplineIds.add(athleteTeamDiscipline.getId());
             }
         }
     }

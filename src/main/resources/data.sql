@@ -90,9 +90,9 @@ INSERT INTO User_Account (first_name, last_name, email, phone, username, passwor
 ('Coach', 'Flag-Football', 'coach.flagfootball@etsmtl.ca', NULL, 'coach-flag-football', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 ('Coach', 'Badminton', 'coach.badminton@etsmtl.ca', NULL, 'coach-badminton', '$2a$10$z5IAiKe5qGL8VdSEutXZA.UbLnugSqxufxEK4H4QQ2k0R6Mdgop7y', 'Active', 2),
 
-('Track', 'User1', 'trackuser1@etsmtl.ca', NULL, 'trackUser1', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3), --Password: password
-('Track', 'User2', 'trackuser2@etsmtl.ca', NULL, 'trackUser2', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
-('Track', 'User3', 'trackuser3@etsmtl.ca', NULL, 'trackUser3', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
+('Track', 'User1', 'trackuser1@etsmtl.ca', '514-555-0101', 'trackUser1', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3), --Password: password
+('Track', 'User2', 'trackuser2@etsmtl.ca', '514-555-0102', 'trackUser2', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
+('Track', 'User3', 'trackuser3@etsmtl.ca', '438-555-0103', 'trackUser3', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 3),
 
 ('Kiné', 'Siologue', 'kine@etsmtl.ca', NULL, 'kine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4), --Password: password
 ('Martin', 'MattLekinesiologue', 'martin@etsmtl.ca', NULL, 'martinkine', '$2a$10$zJbaow2rXTObDtnNmcgbdu9.ufmVcTo6JRAypSkTAetF6HoLAkGva', 'Active', 4),
