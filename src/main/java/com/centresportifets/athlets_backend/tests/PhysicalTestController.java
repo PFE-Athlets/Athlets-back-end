@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
+import com.centresportifets.athlets_backend.tests.dto.BatteryDTO;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestResponseDTO;
 import com.centresportifets.athlets_backend.tests.equipment.Equipment;
@@ -40,6 +41,11 @@ public class PhysicalTestController {
     @PostMapping("/battery/create")
     public void createBattery(@RequestBody BatteryCreateRequest request) {
         physicalTestService.createBattery(request);
+    }
+
+    @GetMapping("/battery")
+    public List<BatteryDTO> getBatteries() {
+        return physicalTestService.getBatteries();
     }
 
     /**

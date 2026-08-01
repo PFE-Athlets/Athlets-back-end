@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
+import com.centresportifets.athlets_backend.tests.dto.BatteryDTO;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestResponseDTO;
 import com.centresportifets.athlets_backend.tests.equipment.Equipment;
@@ -40,6 +42,7 @@ public class PhysicalTestService {
     }
 
     @Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
     public void createPhysicalTest(PhysicalTestCreateRequest request) {
         PhysicalTest newTest = new PhysicalTest();
 
@@ -92,6 +95,7 @@ public class PhysicalTestService {
         }
     }
 
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
     public void createBattery(BatteryCreateRequest request) {
         Battery newBattery = new Battery();
 
@@ -102,6 +106,11 @@ public class PhysicalTestService {
         newBattery.setTests(new ArrayList<>(physicalTests));
 
         batteryRepository.save(newBattery);
+    }
+
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
+    public List<BatteryDTO> getBatteries() {
+        return batteryRepository.findAll().stream().map(BatteryDTO::fromEntity).toList();
     }
 
     public List<UnitMeasure> getUnits() {
