@@ -12,6 +12,7 @@ import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.BatteryDTO;
+import com.centresportifets.athlets_backend.tests.dto.BatteryModRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestCreateRequest;
 import com.centresportifets.athlets_backend.tests.dto.PhysicalTestResponseDTO;
 import com.centresportifets.athlets_backend.tests.equipment.Equipment;
@@ -19,6 +20,9 @@ import com.centresportifets.athlets_backend.tests.equipment.EquipmentRepository;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipment;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentId;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.centresportifets.athlets_backend.sport.Sport;
 import com.centresportifets.athlets_backend.sport.SportRepository;
 
@@ -111,6 +115,29 @@ public class PhysicalTestService {
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
     public List<BatteryDTO> getBatteries() {
         return batteryRepository.findAll().stream().map(BatteryDTO::fromEntity).toList();
+    }
+
+    @Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')" +
+                "|| @authService.hasPermission(authentication, 'COACH')")
+    public void modifyBattery(BatteryModRequest request) {
+        Battery battery = batteryRepository.findById(request.id())
+                .orElseThrow(() -> new EntityNotFoundException("Batterie non trouvée avec l'ID : " + request.id()));
+
+        if (request.newName() != null && !request.newName().isBlank()) {
+            battery.setName(request.newName());
+        }
+        battery.setStatus(request.newStatus());
+
+        if (request.physicalTestIdsToAdd() != null && !request.physicalTestIdsToAdd().isEmpty()) {
+            List<PhysicalTest> testsToAdd = physicalTestRepository.findAllById(request.physicalTestIdsToAdd());
+
+            for (PhysicalTest test : testsToAdd) {
+                if (!battery.getTests().contains(test)) {
+                    battery.getTests().add(test);
+                }
+            }
+        }
     }
 
     public List<UnitMeasure> getUnits() {
