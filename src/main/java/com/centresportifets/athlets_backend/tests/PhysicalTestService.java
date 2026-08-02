@@ -3,8 +3,11 @@ package com.centresportifets.athlets_backend.tests;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.centresportifets.athlets_backend.auth.AuthService;
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
@@ -17,6 +20,12 @@ import com.centresportifets.athlets_backend.tests.equipment.EquipmentRepository;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipment;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentId;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentRepository;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
+import com.centresportifets.athlets_backend.user.coach.Coach;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -30,9 +39,40 @@ public class PhysicalTestService {
     private final UnitMeasureRepository unitMeasureRepository;
     private final ResultTypeRepository resultTypeRepository;
     private final BatteryRepository batteryRepository;
+    private final AuthService authService;
+    private final CoachRepository coachRepository;
+    private final AthleteRepository athleteRepository;
 
-    public List<PhysicalTestResponseDTO> getPhysicalTests(){
-        return physicalTestRepository.findAll().stream()
+    @Transactional(readOnly = true)
+    public List<PhysicalTestResponseDTO> getPhysicalTests(Authentication auth) {
+        UserType userType = authService.getAuthenticatedUserType(auth);
+
+        List<PhysicalTest> tests = switch (userType) {
+            case ADMIN -> physicalTestRepository.findAll();
+
+            case COACH -> {
+                Coach coach = coachRepository.findByUsername(auth.getName())
+                        .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
+                
+                Long teamId = coach.getTeam().getId();
+                yield physicalTestRepository.findAllByBatteriesTeamId(teamId);
+            }
+
+            case ATHLETE -> {
+                Athlete athlete = athleteRepository.findByUsername(auth.getName())
+                        .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));
+
+                List<Long> teamIds = athlete.getAthleteTeams().stream()
+                        .map(at -> at.getId().getTeamId())
+                        .toList();
+                
+                yield physicalTestRepository.findAllByBatteriesTeamIdIn(teamIds);
+            }
+
+            default -> List.of();
+        };
+
+        return tests.stream()
                 .map(PhysicalTestResponseDTO::fromEntity)
                 .toList();
     }

@@ -3,6 +3,7 @@ package com.centresportifets.athlets_backend.tests;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,8 +62,8 @@ public class PhysicalTestController {
 	 * @return a list of every physical test in the database
 	 */
     @GetMapping
-    public List<PhysicalTestResponseDTO> getAllPhysicalTests() {
-        return physicalTestService.getPhysicalTests();
+    public List<PhysicalTestResponseDTO> getAllPhysicalTests(Authentication auth) {
+        return physicalTestService.getPhysicalTests(auth);
     }
 
     @GetMapping("/units")
