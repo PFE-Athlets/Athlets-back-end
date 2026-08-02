@@ -1,13 +1,10 @@
 package com.centresportifets.athlets_backend.tests;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
@@ -20,12 +17,7 @@ import com.centresportifets.athlets_backend.tests.equipment.EquipmentRepository;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipment;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentId;
 import com.centresportifets.athlets_backend.tests.equipment.TestEquipmentRepository;
-
 import jakarta.persistence.EntityNotFoundException;
-
-import com.centresportifets.athlets_backend.sport.Sport;
-import com.centresportifets.athlets_backend.sport.SportRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
