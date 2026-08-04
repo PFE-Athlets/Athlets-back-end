@@ -12,7 +12,7 @@ public record PhysicalTestResponseDTO(
     boolean proofRequired,
     PhysicalQualityDTO physicalQuality,
     List<EquipmentDTO> equipements,
-    List<ResultTypeDTO> typesResultat
+    List<ResultTypeDTO> resultTypes
 ) {
     public record PhysicalQualityDTO(
         int id,
@@ -41,8 +41,8 @@ public record PhysicalTestResponseDTO(
                 .toList()
             : List.of();
 
-        List<ResultTypeDTO> resultTypeDTOs = test.getTypesResultat() != null
-            ? test.getTypesResultat().stream()
+        List<ResultTypeDTO> resultTypeDTOs = test.getResultTypes() != null
+            ? test.getResultTypes().stream()
                 .map(rt -> new ResultTypeDTO(
                     rt.getId().intValue(),
                     rt.getName(),

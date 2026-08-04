@@ -60,5 +60,5 @@ public class PhysicalTest {
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
-    private List<ResultType> typesResultat = new ArrayList<>();
+    private List<ResultType> resultTypes = new ArrayList<>();
 }
