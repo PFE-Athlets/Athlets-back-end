@@ -62,7 +62,7 @@ INSERT INTO Discipline (sport_id, name) VALUES
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du disque'),
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du javelot'),
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du marteau'),
-((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Éproofs combinées');
+((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Épreuves combinées');
 
 INSERT INTO Group_Table (name) VALUES
 ('Elite Men'),
