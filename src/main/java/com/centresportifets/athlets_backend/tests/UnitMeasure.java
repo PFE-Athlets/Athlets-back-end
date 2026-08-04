@@ -10,15 +10,15 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "Unite_Mesure")
+@Table(name = "Unit_Measure")
 public class UnitMeasure {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_unite")
+    @Column(name = "id_unit")
     private Long id;
 
-    @Column(name = "nom", nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "symbole", nullable = false, unique = true)

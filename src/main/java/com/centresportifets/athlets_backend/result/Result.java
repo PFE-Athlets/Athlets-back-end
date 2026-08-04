@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Table(name = "Resultat")
+@Table(name = "Result")
 @Entity
 public class Result {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_resultat")
+    @Column(name = "id_result")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -29,16 +29,16 @@ public class Result {
     @JoinColumn(name = "id_athlete", nullable = false)
     private Athlete athlete;
 
-    @Column(name = "preuve", length = 500)
+    @Column(name = "proof", length = 500)
     private String proof;
 
-    @Column(name = "statut", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private String status = ResultStatus.ASSIGNED.getStatus();
 
-    @Column(name = "commentaire", columnDefinition = "TEXT")
+    @Column(name = "comment", columnDefinition = "TEXT")
     private String commentText;
 
-    @Column(name = "date_resultat", nullable = false)
+    @Column(name = "date_result", nullable = false)
     private LocalDate testDate = LocalDate.now();
 
     @ToString.Exclude

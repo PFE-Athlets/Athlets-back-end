@@ -62,7 +62,7 @@ INSERT INTO Discipline (sport_id, name) VALUES
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du disque'),
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du javelot'),
 ((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Lancer du marteau'),
-((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Épreuves combinées');
+((SELECT id FROM Sport WHERE name = 'Athlétisme'), 'Éproofs combinées');
 
 INSERT INTO Group_Table (name) VALUES
 ('Elite Men'),
@@ -167,7 +167,7 @@ INSERT INTO Kine_Team (user_id, team_id) VALUES
 -- 4. Tests 
 -- ============================================================================
 
-INSERT INTO Unite_Mesure (nom, symbole) VALUES 
+INSERT INTO Unit_Measure (name, symbole) VALUES 
 ('Kilogramme', 'kg'),
 ('Centimètre', 'cm'),
 ('Seconde', 's'),
@@ -186,7 +186,7 @@ INSERT INTO Unite_Mesure (nom, symbole) VALUES
 ('Mètre par seconde', 'm/s'),
 ('Battement par minute', 'bpm');
 
-INSERT INTO Qualite_Physique (nom) VALUES 
+INSERT INTO Physical_Quality (name) VALUES 
 ('Force maximale des membres inférieurs'),
 ('Force maximale des membres supérieurs'),
 ('Puissance verticale'),
@@ -200,34 +200,34 @@ INSERT INTO Qualite_Physique (nom) VALUES
 ('Équilibre'),
 ('Coordination');
 
-INSERT INTO Equipement (nom_equipement) VALUES
+INSERT INTO Equipment (name_equipment) VALUES
 ('Barre olympique et disques'),
-('Chronomètre électronique'),
+('Chronameètre électronique'),
 ('Cônes de marquage'),
 ('Mètre ruban'),
 ('Boîte de souplesse (Sit & Reach)'),
 ('Tapis de sol'),
 ('Tapis roulant');
 
-INSERT INTO Tests (id_qualite_physique, nom_test, protocole, supervise, informations, preuve_requise) VALUES
+INSERT INTO Tests (id_physical_quality, test_name, protocole, supervised, informations, proof_required) VALUES
 (1, '1RM Back Squat', 'Soulever le poids maximal sur une répétition avec une amplitude complète (cuisses parallèles au sol).', TRUE, 'Échauffement progressif obligatoire avant les essais.', TRUE),
 (2, 'Test Léger-Boucher (Beep Test)', 'Course navette de 20m à vitesse progressive guidée par des bips sonores jusqu''à épuisement.', TRUE, 'Prévoir une surface antidérapante.', FALSE),
-(3, 'Sprint 30m', 'Course en ligne droite sur 30m départ arrêté. Mesure du temps total.', FALSE, 'Utiliser idéalement des cellules photoélectriques.', TRUE),
+(3, 'Sprint 30m', 'Course en ligne droite sur 30m départ arrêté. Measure du temps total.', FALSE, 'Utiliser idéalement des cellules photoélectriques.', TRUE),
 (4, 'Pro Agility 5-10-5', 'Course latérale de 5 verges à droite, 10 verges à gauche, et retour au centre.', FALSE, 'Changements de direction francs.', FALSE),
-(5, 'Sit and Reach', 'Flexion du tronc vers l''avant en position assise, jambes tendues contre la boîte de mesure.', FALSE, 'Garder les genoux parfaitement tendus.', FALSE);
+(5, 'Sit and Reach', 'Flexion du tronc vers l''avant en position assise, jambes tendues contre la boîte de measure.', FALSE, 'Garder les genoux parfaitement tendus.', FALSE);
 
-INSERT INTO Type_Resultat (id_test, id_unite_mesure, nom, type_donnee) VALUES
+INSERT INTO Result_Type (id_test, id_unit_measure, name, data_type) VALUES
 (1, 1, 'Poids maximal levé', 'DECIMAL'),         -- 1RM Back Squat (kg)
-(2, 3, 'Palier atteint', 'ENTIER'),              -- Beep Test (reps/palier)
-(2, 6, 'Fréquence cardiaque max', 'ENTIER'),    -- Beep Test (bpm)
+(2, 3, 'Palier atteint', 'INTEGER'),              -- Beep Test (reps/palier)
+(2, 6, 'Fréquence cardiaque max', 'INTEGER'),    -- Beep Test (bpm)
 (3, 2, 'Temps total 30m', 'DECIMAL'),            -- Sprint 30m (s)
 (4, 2, 'Temps de parcours', 'DECIMAL'),          -- Pro Agility (s)
 (5, 4, 'Distance atteinte', 'DECIMAL');          -- Sit and Reach (cm)
 
-INSERT INTO Test_Equipement (id_test, id_equipement, quantite_requise) VALUES
+INSERT INTO Test_Equipment (id_test, id_equipment, required_quantity) VALUES
 (1, 1, 1), -- 1RM Back Squat requires 1 Barre olympique
 (2, 3, 4), -- Beep test requires 4 Cônes
-(3, 2, 1), -- Sprint 30m requires 1 Chronomètre
+(3, 2, 1), -- Sprint 30m requires 1 Chronameètre
 (3, 3, 2), -- Sprint 30m requires 2 Cônes
 (3, 4, 1), -- Sprint 30m requires 1 Mètre ruban
 (4, 3, 3), -- Pro Agility requires 3 Cônes

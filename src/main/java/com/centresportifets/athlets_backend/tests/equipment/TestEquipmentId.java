@@ -16,6 +16,6 @@ public class TestEquipmentId implements Serializable {
     @Column(name = "id_test")
     private Long testId;
 
-    @Column(name = "id_equipement")
-    private Long equipementId;
+    @Column(name = "id_equipment")
+    private Long equipmentId;
 }

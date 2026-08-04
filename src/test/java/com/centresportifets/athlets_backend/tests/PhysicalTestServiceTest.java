@@ -119,7 +119,7 @@ class PhysicalTestServiceTest {
         }
 
         @Test
-        @DisplayName("COACH : Devrait retourner les tests des batteries gérées par son équipe")
+        @DisplayName("COACH : Devrait retourner les tests des batterys gérées par son équipe")
         void coach_ShouldReturnTeamBatteryTests() {
             String username = "coachUser";
             Long teamId = 10L;
@@ -137,17 +137,17 @@ class PhysicalTestServiceTest {
             when(authentication.getName()).thenReturn(username);
             when(authService.getAuthenticatedUserType(authentication)).thenReturn(UserType.COACH);
             when(coachRepository.findByUsername(username)).thenReturn(Optional.of(coach));
-            when(physicalTestRepository.findAllByBatteriesTeamId(teamId)).thenReturn(List.of(teamTest));
+            when(physicalTestRepository.findAllByBatterysTeamId(teamId)).thenReturn(List.of(teamTest));
 
             List<PhysicalTestResponseDTO> result = physicalTestService.getPhysicalTests(authentication);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).name()).isEqualTo("Sprint 30m");
-            verify(physicalTestRepository, times(1)).findAllByBatteriesTeamId(teamId);
+            verify(physicalTestRepository, times(1)).findAllByBatterysTeamId(teamId);
         }
 
         @Test
-        @DisplayName("ATHLETE : Devrait retourner les tests des batteries de ses équipes")
+        @DisplayName("ATHLETE : Devrait retourner les tests des batterys de ses équipes")
         void athlete_ShouldReturnTheirTeamsBatteryTests() {
             String username = "athleteUser";
             Long teamId = 10L;
@@ -167,13 +167,13 @@ class PhysicalTestServiceTest {
             when(authentication.getName()).thenReturn(username);
             when(authService.getAuthenticatedUserType(authentication)).thenReturn(UserType.ATHLETE);
             when(athleteRepository.findByUsername(username)).thenReturn(Optional.of(athlete));
-            when(physicalTestRepository.findAllByBatteriesTeamIdIn(List.of(teamId))).thenReturn(List.of(athleteTest));
+            when(physicalTestRepository.findAllByBatterysTeamIdIn(List.of(teamId))).thenReturn(List.of(athleteTest));
 
             List<PhysicalTestResponseDTO> result = physicalTestService.getPhysicalTests(authentication);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).name()).isEqualTo("Saut Vertical");
-            verify(physicalTestRepository, times(1)).findAllByBatteriesTeamIdIn(List.of(teamId));
+            verify(physicalTestRepository, times(1)).findAllByBatterysTeamIdIn(List.of(teamId));
         }
     }
 
@@ -208,7 +208,7 @@ class PhysicalTestServiceTest {
 
             Equipment equipment = new Equipment();
             equipment.setId(1L);
-            equipment.setName("Chronomètre");
+            equipment.setName("Chronameètre");
 
             UnitMeasure unit = new UnitMeasure();
             unit.setId(5L);
@@ -253,7 +253,7 @@ class PhysicalTestServiceTest {
         void modifyBattery_ShouldAddTestsWithoutRemovingExisting() {
             Battery existingBattery = new Battery();
             existingBattery.setId(1L);
-            existingBattery.setName("Vieille Batterie");
+            existingBattery.setName("Vieille Battery");
             existingBattery.setStatus(true);
 
             PhysicalTest existingTest = new PhysicalTest();
@@ -265,7 +265,7 @@ class PhysicalTestServiceTest {
 
             BatteryModRequest modRequest = new BatteryModRequest(
                     1L,
-                    "Batterie Mise à Jour",
+                    "Battery Mise à Jour",
                     List.of(20L),
                     true
             );
@@ -275,7 +275,7 @@ class PhysicalTestServiceTest {
 
             physicalTestService.modifyBattery(modRequest);
 
-            assertThat(existingBattery.getName()).isEqualTo("Batterie Mise à Jour");
+            assertThat(existingBattery.getName()).isEqualTo("Battery Mise à Jour");
             assertThat(existingBattery.getTests()).hasSize(2).contains(existingTest, newTest);
         }
     }

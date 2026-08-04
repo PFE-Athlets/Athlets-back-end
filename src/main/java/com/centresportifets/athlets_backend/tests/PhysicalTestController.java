@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
- * REST Controller for managing physical tests, test batteries, and associated reference data.
+ * REST Controller for managing physical tests, test batterys, and associated reference data.
  */
 @Tag(
     name = "Physical Test controller",
@@ -54,13 +54,13 @@ public class PhysicalTestController {
     }
 
     /**
-     * Retrieves all available test batteries.
+     * Retrieves all available test batterys.
      *
-     * @return a list of {@link BatteryDTO} representing the registered test batteries
+     * @return a list of {@link BatteryDTO} representing the registered test batterys
      */
     @GetMapping("/battery")
-    public List<BatteryDTO> getBatteries() {
-        return physicalTestService.getBatteries();
+    public List<BatteryDTO> getBatterys() {
+        return physicalTestService.getBatterys();
     }
 
     /**

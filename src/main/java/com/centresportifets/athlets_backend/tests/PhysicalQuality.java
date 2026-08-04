@@ -9,16 +9,16 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
-@Table(name = "Qualite_Physique")
+@Table(name = "Physical_Quality")
 @Entity
 public class PhysicalQuality {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_qualite_physique")
+    @Column(name = "id_physical_quality")
     private int id;
 
-    @Column(name = "nom", nullable = false, length = 100, unique = true)
+    @Column(name = "name", nullable = false, length = 100, unique = true)
     private String name;
 
     @Column(name = "description", length = 500)

@@ -14,16 +14,16 @@ import lombok.Data;
 @Data
 @Entity
 @Table(
-    name = "Type_Resultat",
+    name = "Result_Type",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_type_resultat_test_nom", columnNames = {"id_test", "nom"})
+        @UniqueConstraint(name = "uq_result_type_test_name", columnNames = {"id_test", "name"})
     }
 )
 public class ResultType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_type_resultat")
+    @Column(name = "id_result_type")
     private Long id;
 
     @ManyToOne
@@ -31,12 +31,12 @@ public class ResultType {
     private PhysicalTest test;
 
     @ManyToOne
-    @JoinColumn(name = "id_unite_mesure", nullable = false)
+    @JoinColumn(name = "id_unit_measure", nullable = false)
     private UnitMeasure unitMeasure;
 
-    @Column(name = "nom", nullable = false, length = 200)
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
 
-    @Column(name = "type_donnee", nullable = false, length = 20)
+    @Column(name = "data_type", nullable = false, length = 20)
     private String dataType = "DECIMAL";
 }

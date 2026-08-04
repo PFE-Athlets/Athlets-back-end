@@ -31,7 +31,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service class handling business logic for physical tests, test batteries, and associated reference data.
+ * Service class handling business logic for physical tests, test batterys, and associated reference data.
  */
 @RequiredArgsConstructor
 @Service
@@ -50,8 +50,8 @@ public class PhysicalTestService {
     /**
      * Retrieves physical tests filtered according to the caller's role and team associations.
      * ADMIN: Retrieves all physical tests in the system.
-     * COACH: Retrieves physical tests belonging to test batteries assigned to their team.
-     * ATHLETE: Retrieves physical tests belonging to test batteries assigned to any of their teams.
+     * COACH: Retrieves physical tests belonging to test batterys assigned to their team.
+     * ATHLETE: Retrieves physical tests belonging to test batterys assigned to any of their teams.
      *
      * @param auth the authentication context of the currently logged-in user
      * @return a list of {@link PhysicalTestResponseDTO} matching the user's access level
@@ -62,22 +62,23 @@ public class PhysicalTestService {
         UserType userType = authService.getAuthenticatedUserType(auth);
         List<PhysicalTest> tests;
 
-        if (userType == UserType.ADMIN) {
-            tests = physicalTestRepository.findAll();
-        } else if (userType == UserType.COACH) {
-            Coach coach = coachRepository.findByUsername(auth.getName())
-                    .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
-            Long teamId = coach.getTeam().getId();
-            tests = physicalTestRepository.findAllByBatteriesTeamId(teamId);
-        } else if (userType == UserType.ATHLETE) {
-            Athlete athlete = athleteRepository.findByUsername(auth.getName())
-                    .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));
-            List<Long> teamIds = athlete.getAthleteTeams().stream()
-                    .map(at -> at.getId().getTeamId())
-                    .toList();
-            tests = physicalTestRepository.findAllByBatteriesTeamIdIn(teamIds);
-        } else {
-            tests = Collections.emptyList();
+        switch(userType) {
+            case ADMIN -> tests = physicalTestRepository.findAll();
+            case COACH -> {
+                Coach coach = coachRepository.findByUsername(auth.getName())
+                        .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
+                Long teamId = coach.getTeam().getId();
+                tests = physicalTestRepository.findAllByBatterysTeamId(teamId);
+            }
+            case ATHLETE -> {
+                Athlete athlete = athleteRepository.findByUsername(auth.getName())
+                        .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));
+                List<Long> teamIds = athlete.getAthleteTeams().stream()
+                        .map(at -> at.getId().getTeamId())
+                        .toList();
+                tests = physicalTestRepository.findAllByBatterysTeamIdIn(teamIds);
+            }
+            default -> tests = Collections.emptyList();
         }
 
         return tests.stream()
@@ -166,13 +167,13 @@ public class PhysicalTestService {
     }
 
     /**
-     * Retrieves all existing test batteries.
+     * Retrieves all existing test batterys.
      * Requires {@code ADMIN} or {@code COACH} permissions.
      *
-     * @return a list of {@link BatteryDTO} objects representing all batteries in the system
+     * @return a list of {@link BatteryDTO} objects representing all batterys in the system
      */
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
-    public List<BatteryDTO> getBatteries() {
+    public List<BatteryDTO> getBatterys() {
         return batteryRepository.findAll().stream().map(BatteryDTO::fromEntity).toList();
     }
 
@@ -187,7 +188,7 @@ public class PhysicalTestService {
                 "|| @authService.hasPermission(authentication, 'COACH')")
     public void modifyBattery(BatteryModRequest request) {
         Battery battery = batteryRepository.findById(request.id())
-                .orElseThrow(() -> new EntityNotFoundException("Batterie non trouvée avec l'ID : " + request.id()));
+                .orElseThrow(() -> new EntityNotFoundException("Battery non trouvée avec l'ID : " + request.id()));
 
         if (request.newName() != null && !request.newName().isBlank()) {
             battery.setName(request.newName());

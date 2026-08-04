@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "Test_Equipement")
+@Table(name = "Test_Equipment")
 public class TestEquipment {
 
     @EmbeddedId
@@ -24,9 +24,9 @@ public class TestEquipment {
     private PhysicalTest test;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("equipementId")
+    @MapsId("equipmentId")
     private Equipment equipment;
 
-    @Column(name = "quantite_requise", nullable = false)
+    @Column(name = "required_quantity", nullable = false)
     private Integer quantityRequired = 1;
 }

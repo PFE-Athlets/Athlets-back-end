@@ -23,11 +23,11 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(
-    name = "Valeur_Resultat",
+    name = "Result_Value",
     uniqueConstraints = {
         @UniqueConstraint(
-            name = "uq_valeur_resultat",
-            columnNames = {"id_resultat", "id_type_resultat"}
+            name = "uq_value_result",
+            columnNames = {"id_result", "id_result_type"}
         )
     }
 )
@@ -35,17 +35,17 @@ public class ResultValue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_valeur_resultat")
+    @Column(name = "id_result_value")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_resultat", nullable = false)
+    @JoinColumn(name = "id_result", nullable = false)
     private Result result;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_type_resultat", nullable = false)
+    @JoinColumn(name = "id_result_type", nullable = false)
     private ResultType resultType;
 
-    @Column(name = "valeur", nullable = false, precision = 10, scale = 2)
+    @Column(name = "value", nullable = false, precision = 10, scale = 2)
     private BigDecimal value;
 }

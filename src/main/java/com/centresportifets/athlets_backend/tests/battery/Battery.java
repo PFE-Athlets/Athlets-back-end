@@ -23,32 +23,32 @@ import lombok.Data;
 @Data
 @Entity
 @Table(
-    name = "Batterie",
+    name = "Battery",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_batterie_equipe_nom", columnNames = {"id_equipe", "nom_batterie"})
+        @UniqueConstraint(name = "uq_battery_team_name", columnNames = {"id_team", "name_battery"})
     }
 )
 public class Battery {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_batterie")
+    @Column(name = "id_battery")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_equipe", nullable = false)
+    @JoinColumn(name = "id_team", nullable = false)
     private Team team;
 
-    @Column(name = "nom_batterie", nullable = false, length = 100)
+    @Column(name = "name_battery", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "statut", nullable = false)
+    @Column(name = "status", nullable = false)
     private boolean status = true;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "Batterie_Test",
-        joinColumns = @JoinColumn(name = "id_batterie"),
+        name = "Battery_Test",
+        joinColumns = @JoinColumn(name = "id_battery"),
         inverseJoinColumns = @JoinColumn(name = "id_test")
     )
     private List<PhysicalTest> tests = new ArrayList<>();
