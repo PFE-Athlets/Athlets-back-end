@@ -27,6 +27,9 @@ import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.kine.Kine;
+import com.centresportifets.athlets_backend.user.kine.KineRepository;
+import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
 
 @RequiredArgsConstructor
 @Component("authService")
@@ -36,6 +39,8 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final CoachRepository coachRepository;
+	private final KineRepository kineRepository;
+	private final KineTeamRepository kineTeamRepository;
 	private final AthleteRepository athleteRepository;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
@@ -120,6 +125,36 @@ public class AuthService {
 		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
 	}
 
+	public boolean canManageTeams(Authentication auth, List<Long> teamIds) {
+		if (teamIds == null || teamIds.isEmpty()) {
+			throw new IllegalArgumentException("Team IDs list cannot be null or empty.");
+		}
+
+		if (hasPermission(auth, "ADMIN")) {
+			return true;
+		}
+
+		if (hasPermission(auth, "COACH")) {
+			Coach coach = coachRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
+
+			if (teamIds.size() > 1) {
+				throw new IllegalArgumentException("Coaches can only manage one team at a time.");
+			}
+
+			return teamIds.get(0).equals(coach.getTeam().getId());
+		}
+
+		if (hasPermission(auth, "KINE")) {
+			Kine kine = kineRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
+
+			return teamIds.stream().allMatch(teamId -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId));
+		}
+
+		return false;
+	}
+
 	/**
      * Helper to verify if the authenticated user has either ADMIN role OR 
      * is a COACH who manages ALL of the athletes specified by their usernames.
@@ -144,6 +179,22 @@ public class AuthService {
                        .anyMatch(at -> at.getId().getTeamId().equals(coachTeamId))
             );
         }
+
+		if (hasPermission(auth, "KINE")) {
+			Kine kine = kineRepository.findByUsername(auth.getName())
+					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
+		
+			List<Athlete> athletes = athleteRepository.findAllByUsernameIn(usernames);
+			for (Athlete athlete : athletes) {
+				boolean isAssociated = athlete.getAthleteTeams().stream()
+						.anyMatch(at -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), at.getId().getTeamId()));
+				if (!isAssociated) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
         
         return false;
     }
@@ -182,6 +233,7 @@ public class AuthService {
 			case 1: return UserType.ADMIN;
 			case 2: return UserType.COACH;
 			case 3: return UserType.ATHLETE;
+			case 4: return UserType.KINE;
 			default: return UserType.INVALID;
 		}
 	}

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.centresportifets.athlets_backend.team.dto.TeamDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamModificationRequest;
+import com.centresportifets.athlets_backend.user.kine.dto.KineDisplay;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,12 @@ public class TeamController {
     @GetMapping("/subcoaches/{teamId}")
     public ResponseEntity<List<SubcoachDisplay>> getSubcoaches(@PathVariable Long teamId, Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getSubcoaches(teamId, auth));
+    }
+
+    
+    @GetMapping("/kinesiologists/{teamId}")
+    public ResponseEntity<List<KineDisplay>> getKinesiologistsByTeamId(@PathVariable Long teamId, Authentication auth) {
+        return ResponseEntity.status(HttpStatus.OK).body(teamService.getKinesiologistsByTeamId(teamId, auth));
     }
 
     @PostMapping()
