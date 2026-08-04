@@ -167,14 +167,6 @@ INSERT INTO Kine_Team (user_id, team_id) VALUES
 -- 4. Tests 
 -- ============================================================================
 
-INSERT INTO Result (test_id, athlete_id, result_value, status, test_date, comment_text) VALUES 
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '140', 'Approved', '2026-06-10', 'Exceeded personal best by 5kg.'),
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '145', 'Rejected', '2026-06-12', 'Depth was incomplete during lift attempt.'),
-((SELECT id FROM Test WHERE name = 'Beep Test'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '11.5', 'Approved', '2026-06-15', 'Great conditioning phase results.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.88', 'Approved', '2026-06-18', 'Strong block start mechanics.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.82', 'Pending approval', '2026-06-29', 'Awaiting video validation review by coach.'),
-((SELECT id FROM Test WHERE name = 'Pro Agility 5-10-5'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '4.25', 'Approved', '2026-06-20', 'Good footwork on secondary cut.'),
-((SELECT id FROM Test WHERE name = 'Sit and Reach'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '0.18', 'Pending approval', '2026-06-30', 'Improving lower back flexibility.');
 INSERT INTO Unite_Mesure (nom, symbole) VALUES 
 ('Kilogramme', 'kg'),
 ('Centimètre', 'cm'),
