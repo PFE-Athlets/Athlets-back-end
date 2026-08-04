@@ -59,18 +59,13 @@ public class AthleteService {
             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamName));
 
         Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
-        athlete.setAccountStatus(UserStatus.WAITING.getStatus());
+        athlete.setAccountStatus(UserStatus.PENDING.getStatus());
         athlete = athleteRepository.save(athlete);
 
         AthleteTeam athleteTeam = new AthleteTeam();
         athleteTeam.setAthlete(athlete);
         athleteTeam.setTeam(team);
-        // TODO set discipline and position fields if provided
         athleteTeamRepository.save(athleteTeam);
-
-        String activationLink = authService.generateActivationTokenForUser(athlete);
-        System.out.println("Lien d'activation pour " + athlete.getEmail() + " : " + activationLink);
-        //emailService.sendActivationEmail(user.getEmail(), activationLink);
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")

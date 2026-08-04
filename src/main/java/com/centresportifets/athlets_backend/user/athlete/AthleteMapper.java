@@ -13,7 +13,7 @@ public class AthleteMapper {
         athlete.setPhone(request.getPhone());
         athlete.setUsername(request.getUsername());
         athlete.setPassword(password);
-        athlete.setAccountStatus(UserStatus.WAITING.getStatus());
+        athlete.setAccountStatus(UserStatus.PENDING.getStatus());
         athlete.setBirthDate(request.getBirthDate());
         athlete.setGender(request.getGender());
         athlete.setHeightMeters(request.getHeightMeters());

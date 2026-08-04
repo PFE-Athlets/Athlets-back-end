@@ -46,7 +46,7 @@ public class AuthService {
 
 	private static final String PASSWORD_RESET_TOKEN_TYPE = "PASSWORD_RESET";
 	private static final String ACTIVATION_TOKEN_TYPE = "ACTIVATION";
-	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 24;
+	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 72;
 	private static final int PASSWORD_RESET_TOKEN_EXPIRATION_HOURS = 1;
 
 	private final UserAccountRepository userRepository;
@@ -117,7 +117,7 @@ public class AuthService {
 			throw new IllegalArgumentException("L'utilisateur est obligatoire.");
 		}
 
-		if (!UserStatus.WAITING.getStatus().equals(user.getAccountStatus())) {
+		if (!UserStatus.PENDING.getStatus().equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte n'est pas en attente d'activation.");
 		}
 
@@ -142,8 +142,8 @@ public class AuthService {
 
 		String activationLink = frontendBaseUrl + "/activation-compte?token=" + tokenValue;
 
-		// TODO: Uncomment when email sending is enabled.
-		// emailService.sendActivationEmail(user.getEmail(), activationLink);
+
+		emailService.sendActivationEmail(user.getEmail(), activationLink);
 
 		System.out.println("Lien d'activation généré : " + activationLink);
 
@@ -175,7 +175,7 @@ public class AuthService {
 
 		UserAccount user = accountToken.getUser();
 
-		if (!UserStatus.WAITING.getStatus().equals(user.getAccountStatus())) {
+		if (!UserStatus.PENDING.getStatus().equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte est déjà activé ou ne peut pas être activé.");
 		}
 
@@ -260,8 +260,7 @@ public class AuthService {
 
 		String resetLink = frontendBaseUrl + "/reinitialisation-mot-de-passe?token=" + tokenValue;
 
-		// TODO: Uncomment when email sending is enabled.
-		// emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+		emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
 		System.out.println("Lien de réinitialisation généré : " + resetLink);
 		System.out.println("Lien de réinitialisation pour " + user.getEmail() + " : " + resetLink);
