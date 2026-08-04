@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
+import com.centresportifets.athlets_backend.team.Team;
+import com.centresportifets.athlets_backend.team.TeamRepository;
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryCreateRequest;
@@ -46,6 +48,7 @@ public class PhysicalTestService {
     private final AuthService authService;
     private final CoachRepository coachRepository;
     private final AthleteRepository athleteRepository;
+    private final TeamRepository teamRepository;
 
     /**
      * Retrieves physical tests filtered according to the caller's role and team associations.
@@ -156,9 +159,12 @@ public class PhysicalTestService {
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
     public void createBattery(BatteryCreateRequest request) {
         Battery newBattery = new Battery();
+        Team team = teamRepository.findById((long)request.teamId())
+                .orElseThrow(() -> new IllegalArgumentException("Team not found: " + request.teamId()));
 
         newBattery.setName(request.name());
         newBattery.setStatus(request.status());
+        newBattery.setTeam(team);
 
         List<PhysicalTest> physicalTests = physicalTestRepository.findAllById(request.physicalTestIds());
         newBattery.setTests(new ArrayList<>(physicalTests));

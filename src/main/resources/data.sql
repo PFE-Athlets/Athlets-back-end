@@ -232,3 +232,71 @@ INSERT INTO Test_Equipment (id_test, id_equipment, required_quantity) VALUES
 (3, 4, 1), -- Sprint 30m requires 1 Mètre ruban
 (4, 3, 3), -- Pro Agility requires 3 Cônes
 (5, 5, 1); -- Sit and Reach requires 1 Boîte de souplesse
+
+-- ============================================================================
+-- 5. TEST BATTERIES & BATTERY ASSIGNMENTS
+-- ============================================================================
+INSERT INTO Battery (id_team, name_battery, status) VALUES
+((SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Évaluation Physique Début de Saison', TRUE),
+((SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Test de Puissance & Vitesse', TRUE),
+((SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Batterie Initiale Volleyball', FALSE);
+
+INSERT INTO Battery_Test (id_battery, id_test) VALUES
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = 'Sit and Reach')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Test de Puissance & Vitesse'), (SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Test de Puissance & Vitesse'), (SELECT id_test FROM Tests WHERE test_name = 'Pro Agility 5-10-5'));
+
+-- ============================================================================
+-- 6. RESULTS & RESULT VALUES
+-- ============================================================================
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ 'https://proofs.etsmtl.ca/squat_trackuser1.mp4',
+ 'Accepted',
+ 'Excellente forme, valide.',
+ '2026-05-10');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser1') AND id_test = (SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Poids maximal levé'),
+ 140.50);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ 'https://proofs.etsmtl.ca/sprint_trackuser1.mp4',
+ 'Accepted',
+ 'Chrono validé par cellule photoélectrique.',
+ '2026-05-12');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser1') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Temps total 30m'),
+ 4.15);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser2'),
+ NULL,
+ 'Pending approval',
+ 'En attente de validation du kinésiologue.',
+ '2026-05-15');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser2') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Palier atteint'),
+ 11.00),
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser2') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Fréquence cardiaque max'),
+ 188.00);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Pro Agility 5-10-5'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser3'),
+ NULL,
+ 'Assigned',
+ 'À réaliser la semaine prochaine.',
+ '2026-05-20');

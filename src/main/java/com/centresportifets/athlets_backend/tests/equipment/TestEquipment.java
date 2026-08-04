@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
@@ -21,10 +22,12 @@ public class TestEquipment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("testId")
+    @JoinColumn(name = "id_test")
     private PhysicalTest test;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("equipmentId")
+    @JoinColumn(name = "id_equipment")
     private Equipment equipment;
 
     @Column(name = "required_quantity", nullable = false)
