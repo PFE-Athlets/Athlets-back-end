@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.sport.dto.DisciplinesAndPositions;
 import com.centresportifets.athlets_backend.sport.dto.SportDisplay;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,5 +25,10 @@ public class SportController {
     @GetMapping("/sports")
     public ResponseEntity<List<SportDisplay>> getSports() {
         return ResponseEntity.status(HttpStatus.OK).body(sportService.getSports());
+    }
+
+    @GetMapping("/disciplines-positions/{sportId}")
+    public ResponseEntity<DisciplinesAndPositions> getDisciplinesAndPositions(Long sportId) {
+        return ResponseEntity.status(HttpStatus.OK).body(sportService.getDisciplinesAndPositions(sportId));
     }
 }
