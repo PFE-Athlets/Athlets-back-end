@@ -4,7 +4,8 @@ public enum UserType {
     INVALID(0),
     ADMIN(1),
     COACH(2),
-    ATHLETE(3);
+    ATHLETE(3),
+    KINE(4);
 
     private final int permissionId;
 

@@ -8,14 +8,7 @@ import lombok.Data;
 @Data
 public class AthleteUpdateRequest {
     private String phone;
-
     private BigDecimal weightKg;
-
     private String injuryHistory;
-
-    private List<Long> teamIds;
-
-    private List<Long> positionIds;
-
-    private List<Long> disciplineIds;
+    private List<TeamInfoData> teamsInfo;
 }
