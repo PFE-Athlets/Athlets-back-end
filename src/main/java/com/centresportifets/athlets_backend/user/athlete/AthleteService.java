@@ -22,6 +22,7 @@ import com.centresportifets.athlets_backend.team.AthleteTeamPositionRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.team.Team;
 import com.centresportifets.athlets_backend.team.TeamRepository;
+import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
@@ -58,7 +59,7 @@ public class AthleteService {
             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamName));
 
         Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
-        athlete.setAccountStatus("A_ACTIVER");
+        athlete.setAccountStatus(UserStatus.WAITING.getStatus());
         athlete = athleteRepository.save(athlete);
 
         AthleteTeam athleteTeam = new AthleteTeam();

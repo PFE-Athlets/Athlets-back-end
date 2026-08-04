@@ -85,10 +85,7 @@ public class AuthController {
 		try {
 			String activationLink = authService.generateActivationTokenForUsername(request.getUsername());
 
-			return ResponseEntity.ok(Map.of(
-					"message", "Lien d'activation généré avec succès.",
-					"activationLink", activationLink
-			));
+			return ResponseEntity.ok(activationLink);
 		} catch (IllegalArgumentException exception) {
 			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
 		}
@@ -105,7 +102,7 @@ public class AuthController {
 		try {
 			authService.activateAccount(request);
 
-			return ResponseEntity.ok(Map.of("message", "Compte activé avec succès."));
+			return ResponseEntity.ok().build();
 		} catch (IllegalArgumentException exception) {
 			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
 		}
@@ -121,13 +118,7 @@ public class AuthController {
 	public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
 		authService.generatePasswordResetToken(request.getEmail());
 
-		/*
-		* Réponse volontairement neutre.
-		* On ne veut pas révéler si l'email existe ou non.
-		*/
-		return ResponseEntity.ok(Map.of(
-				"message", "Si le compte existe et est actif, un lien de réinitialisation sera envoyé."
-		));
+		return ResponseEntity.ok().build();
 	}
 
 	/**
@@ -141,9 +132,7 @@ public class AuthController {
 		try {
 			authService.resetPassword(request);
 
-			return ResponseEntity.ok(Map.of(
-					"message", "Mot de passe réinitialisé avec succès."
-			));
+			return ResponseEntity.ok().build();
 		} catch (IllegalArgumentException exception) {
 			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
 		}

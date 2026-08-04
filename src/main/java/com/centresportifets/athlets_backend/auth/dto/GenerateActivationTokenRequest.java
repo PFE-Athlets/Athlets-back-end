@@ -1,14 +1,8 @@
 package com.centresportifets.athlets_backend.auth.dto;
 
+import lombok.Data;
+
+@Data
 public class GenerateActivationTokenRequest {
-
 	private String username;
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
 }

@@ -44,8 +44,6 @@ import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 @Service
 public class AuthService {
 
-	private static final String ACCOUNT_STATUS_ACTIVE = "Active";
-	private static final String ACCOUNT_STATUS_TO_ACTIVATE = "A_ACTIVER";
 	private static final String PASSWORD_RESET_TOKEN_TYPE = "PASSWORD_RESET";
 	private static final String ACTIVATION_TOKEN_TYPE = "ACTIVATION";
 	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 24;
@@ -119,7 +117,7 @@ public class AuthService {
 			throw new IllegalArgumentException("L'utilisateur est obligatoire.");
 		}
 
-		if (!ACCOUNT_STATUS_TO_ACTIVATE.equals(user.getAccountStatus())) {
+		if (!UserStatus.WAITING.getStatus().equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte n'est pas en attente d'activation.");
 		}
 
@@ -177,12 +175,12 @@ public class AuthService {
 
 		UserAccount user = accountToken.getUser();
 
-		if (!ACCOUNT_STATUS_TO_ACTIVATE.equals(user.getAccountStatus())) {
+		if (!UserStatus.WAITING.getStatus().equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Ce compte est déjà activé ou ne peut pas être activé.");
 		}
 
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-		user.setAccountStatus(ACCOUNT_STATUS_ACTIVE);
+		user.setAccountStatus(UserStatus.ACTIVE.getStatus());
 
 		accountToken.setUsedAt(LocalDateTime.now());
 
@@ -234,15 +232,14 @@ public class AuthService {
 
 		Optional<UserAccount> userOptional = userRepository.findByEmail(email);
 
-		// Verify if user exists
 		if (userOptional.isEmpty()) {
-			return null;
+			throw new IllegalArgumentException("Utilisateur introuvable.");
 		}
 
 		UserAccount user = userOptional.get();
 
-		if (!ACCOUNT_STATUS_ACTIVE.equals(user.getAccountStatus())) {
-			return null;
+		if (!UserStatus.ACTIVE.getStatus().equals(user.getAccountStatus())) {
+			throw new IllegalStateException("Le compte utilisateur n'est pas actif.");
 		}
 
 		accountTokenRepository.findByUserAndTypeAndUsedAtIsNull(user, PASSWORD_RESET_TOKEN_TYPE)
@@ -311,7 +308,7 @@ public class AuthService {
 
 		UserAccount user = accountToken.getUser();
 
-		if (!ACCOUNT_STATUS_ACTIVE.equals(user.getAccountStatus())) {
+		if (!UserStatus.ACTIVE.getStatus().equals(user.getAccountStatus())) {
 			throw new IllegalArgumentException("Le compte n'est pas actif.");
 		}
 
