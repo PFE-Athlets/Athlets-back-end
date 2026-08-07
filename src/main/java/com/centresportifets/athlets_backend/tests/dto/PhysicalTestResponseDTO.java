@@ -11,7 +11,7 @@ public record PhysicalTestResponseDTO(
     String informations,
     boolean proofRequired,
     PhysicalQualityDTO physicalQuality,
-    List<EquipmentDTO> equipements,
+    List<EquipmentDTO> equipments,
     List<ResultTypeDTO> resultTypes
 ) {
     public record PhysicalQualityDTO(
@@ -35,8 +35,8 @@ public record PhysicalTestResponseDTO(
             ? new PhysicalQualityDTO(test.getPhysicalQuality().getId(), test.getPhysicalQuality().getName())
             : null;
 
-        List<EquipmentDTO> equipmentDTOs = test.getEquipements() != null
-            ? test.getEquipements().stream()
+        List<EquipmentDTO> equipmentDTOs = test.getEquipments() != null
+            ? test.getEquipments().stream()
                 .map(e -> new EquipmentDTO(e.getId().intValue(), e.getName()))
                 .toList()
             : List.of();

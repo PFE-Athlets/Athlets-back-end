@@ -199,20 +199,20 @@ class GetPhysicalTestsByRole {
     // =========================================================================
 
     @Nested
-    @DisplayName("Batteries de Tests - Rôles & Permissions")
+    @DisplayName("Batterys de Tests - Rôles & Permissions")
     class BatteryEndpoints {
 
         private BatteryModRequest createModRequest() {
-            return new BatteryModRequest(1L, "Nouveau Nom", List.of(2L), true);
+            return new BatteryModRequest(1L, "Nouveau name", List.of(2L), true);
         }
 
         private BatteryCreateRequest createBatteryRequest() {
-            return new BatteryCreateRequest("Batterie Pré-Saison", 10, true, List.of(1L, 2L));
+            return new BatteryCreateRequest("Battery Pré-Saison", 10, true, List.of(1L, 2L));
         }
 
         @Test
         @WithMockUser(username = "adminUser", roles = "ADMIN")
-        @DisplayName("ADMIN : Création de batterie autorisée (HTTP 200 OK)")
+        @DisplayName("ADMIN : Création de battery autorisée (HTTP 200 OK)")
         void admin_ShouldCreateBattery() throws Exception {
             doNothing().when(physicalTestService).createBattery(any());
 
@@ -227,10 +227,10 @@ class GetPhysicalTestsByRole {
 
         @Test
         @WithMockUser(username = "coachUser", roles = "COACH")
-        @DisplayName("COACH : Consultation de la liste des batteries (HTTP 200 OK)")
-        void coach_ShouldGetBatteries() throws Exception {
-            BatteryDTO dto = new BatteryDTO(1, "Équipe A", "Batterie Vitesse", true, List.of());
-            when(physicalTestService.getBatteries()).thenReturn(List.of(dto));
+        @DisplayName("COACH : Consultation de la liste des batterys (HTTP 200 OK)")
+        void coach_ShouldGetBatterys() throws Exception {
+            BatteryDTO dto = new BatteryDTO(1, "Équipe A", "Battery Vitesse", true, List.of());
+            when(physicalTestService.getBatterys()).thenReturn(List.of(dto));
 
             mockMvc.perform(get("/api/physicalTest/battery")
                     .accept(MediaType.APPLICATION_JSON))
@@ -238,14 +238,14 @@ class GetPhysicalTestsByRole {
                     .andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].id").value(1))
                     .andExpect(jsonPath("$[0].teamName").value("Équipe A"))
-                    .andExpect(jsonPath("$[0].name").value("Batterie Vitesse"));
+                    .andExpect(jsonPath("$[0].name").value("Battery Vitesse"));
 
-            verify(physicalTestService).getBatteries();
+            verify(physicalTestService).getBatterys();
         }
 
         @Test
         @WithMockUser(username = "adminUser", roles = "ADMIN")
-        @DisplayName("ADMIN : Modification de batterie autorisée (HTTP 200 OK)")
+        @DisplayName("ADMIN : Modification de battery autorisée (HTTP 200 OK)")
         void admin_ShouldModifyBattery() throws Exception {
             when(authService.hasPermission(any(), eq("ADMIN"))).thenReturn(true);
 
@@ -260,7 +260,7 @@ class GetPhysicalTestsByRole {
 
         @Test
         @WithMockUser(username = "coachUser", roles = "COACH")
-        @DisplayName("COACH : Modification de batterie autorisée (HTTP 200 OK)")
+        @DisplayName("COACH : Modification de battery autorisée (HTTP 200 OK)")
         void coach_ShouldModifyBattery() throws Exception {
             when(authService.hasPermission(any(), eq("COACH"))).thenReturn(true);
 
@@ -275,7 +275,7 @@ class GetPhysicalTestsByRole {
 
         @Test
         @WithMockUser(username = "athleteUser", roles = "ATHLETE")
-        @DisplayName("ATHLÈTE / Non Autorisé : Modification de batterie rejetée par le service (HTTP 403 Forbidden)")
+        @DisplayName("ATHLÈTE / Non Autorisé : Modification de battery rejetée par le service (HTTP 403 Forbidden)")
         void unauthorizedUser_ShouldBeForbiddenToModifyBattery() throws Exception {
             when(authService.hasPermission(any(), any())).thenReturn(false);
             doThrow(new AccessDeniedException("Access Denied")).when(physicalTestService).modifyBattery(any());
@@ -324,7 +324,7 @@ class GetPhysicalTestsByRole {
         void getTestEquipments_ShouldReturnEquipments() throws Exception {
             Equipment equipment = new Equipment();
             equipment.setId(1L);
-            equipment.setName("Chronomètre");
+            equipment.setName("Chronameètre");
 
             when(physicalTestService.getEquipments()).thenReturn(List.of(equipment));
 
@@ -333,7 +333,7 @@ class GetPhysicalTestsByRole {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].id").value(1))
-                    .andExpect(jsonPath("$[0].name").value("Chronomètre"));
+                    .andExpect(jsonPath("$[0].name").value("Chronameètre"));
 
             verify(physicalTestService).getEquipments();
         }

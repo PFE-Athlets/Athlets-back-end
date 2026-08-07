@@ -32,31 +32,31 @@ public class PhysicalTest {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_qualite_physique", nullable = false)
+    @JoinColumn(name = "id_physical_quality", nullable = false)
     private PhysicalQuality physicalQuality;
 
-    @Column(name = "nom_test", nullable = false, length = 100, unique = true)
+    @Column(name = "test_name", nullable = false, length = 100, unique = true)
     private String name;
 
     @Column(name = "protocole", nullable = false)
     private String protocol;
 
-    @Column(name = "supervise", nullable = false)
+    @Column(name = "supervised", nullable = false)
     private boolean supervised = false;
 
     @Column(name = "informations")
     private String informations;
 
-    @Column(name = "preuve_requise", nullable = false)
+    @Column(name = "proof_required", nullable = false)
     private boolean proofRequired = false;
 
     @ManyToMany
     @JoinTable(
-        name = "Test_Equipement",
+        name = "Test_Equipment",
         joinColumns = @JoinColumn(name = "id_test"),
-        inverseJoinColumns = @JoinColumn(name = "id_equipement")
+        inverseJoinColumns = @JoinColumn(name = "id_equipment")
     )
-    private Set<Equipment> equipements = new HashSet<>();
+    private Set<Equipment> equipments = new HashSet<>();
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
