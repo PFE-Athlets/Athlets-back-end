@@ -120,8 +120,6 @@ INSERT INTO Team (sport_id, name) VALUES
 
 INSERT INTO Coach (user_id, access_level, sport_id, team_id, title, is_head_coach) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'coach-volleyball'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Head Volleyball Coach', true),
-((SELECT id FROM User_Account WHERE username = 'coach-volleyball2'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
-((SELECT id FROM User_Account WHERE username = 'coach-volleyball3'), 2, (SELECT id FROM Sport WHERE name = 'Volleyball'), (SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Sub Volleyball Coach', false),
 ((SELECT id FROM User_Account WHERE username = 'coach-athletics'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach', true),
 ((SELECT id FROM User_Account WHERE username = 'coach-athletics2'), 2, (SELECT id FROM Sport WHERE name = 'Athlétisme'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Head Track & Field Coach', false),
 ((SELECT id FROM User_Account WHERE username = 'coach-rugby'), 2, (SELECT id FROM Sport WHERE name = 'Rugby'), (SELECT id FROM Team WHERE name = 'Piranhas Rugby'), 'Head Rugby Coach', true),
@@ -166,27 +164,139 @@ INSERT INTO Kine_Team (user_id, team_id) VALUES
 ((SELECT id FROM User_Account WHERE username = 'lpkine'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country'));
 
 -- ============================================================================
--- 4. TESTS & PERFORMANCE RESULTS
+-- 4. Tests 
 -- ============================================================================
-INSERT INTO Test (name, unit_of_measure, protocol, proof_needed) VALUES 
-('1RM Back Squat', 'Kg', 'Maximum weight lifted for one repetition cleanly. (Force)', 'Photo'),
-('Beep Test', 'Repetitions', 'Multi-stage 20m shuttle run test to volitional exhaustion. (Endurance)', 'None'),
-('30m Sprint', 'Seconds', 'Electronic timing gates or video analysis from stationary start. (Vitesse)', 'Video'),
-('Pro Agility 5-10-5', 'Seconds', 'Lateral shuttle running tracking quick change of direction. (Agilite)', 'None'),
-('Sit and Reach', 'Metres', 'Standard flexibility box baseline metrics. (Souplesse)', 'Photo');
 
-INSERT INTO Test_Sport (test_id, sport_id) VALUES 
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Force test
-((SELECT id FROM Test WHERE name = 'Beep Test'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Endurance test
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Vitesse test
-((SELECT id FROM Test WHERE name = 'Pro Agility 5-10-5'), (SELECT id FROM Sport WHERE name = 'Athlétisme')), -- Agilite test
-((SELECT id FROM Test WHERE name = 'Sit and Reach'), (SELECT id FROM Sport WHERE name = 'Athlétisme')); -- Souplesse test
+INSERT INTO Unit_Measure (name, symbole) VALUES 
+('Kilogramme', 'kg'),
+('Centimètre', 'cm'),
+('Seconde', 's'),
+('Minute', 'min'),
+('Heure', 'h'),
+('Répétition', 'rep'),
+('Pourcentage', '%'),
+('Watt', 'W'),
+('Pouce', 'po'),
+('Mètre', 'm'),
+('Livre', 'lb'),
+('Newton-seconde', 'N.s'),
+('Newton par kilogramme', 'N/kg'),
+('Watt par kilogramme', 'W/kg'),
+('Kilomètre par heure', 'km/h'),
+('Mètre par seconde', 'm/s'),
+('Battement par minute', 'bpm');
 
-INSERT INTO Result (test_id, athlete_id, result_value, status, test_date, comment_text) VALUES 
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '140', 'Approved', '2026-06-10', 'Exceeded personal best by 5kg.'),
-((SELECT id FROM Test WHERE name = '1RM Back Squat'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '145', 'Rejected', '2026-06-12', 'Depth was incomplete during lift attempt.'),
-((SELECT id FROM Test WHERE name = 'Beep Test'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '11.5', 'Approved', '2026-06-15', 'Great conditioning phase results.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.88', 'Approved', '2026-06-18', 'Strong block start mechanics.'),
-((SELECT id FROM Test WHERE name = '30m Sprint'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '3.82', 'Pending approval', '2026-06-29', 'Awaiting video validation review by coach.'),
-((SELECT id FROM Test WHERE name = 'Pro Agility 5-10-5'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '4.25', 'Approved', '2026-06-20', 'Good footwork on secondary cut.'),
-((SELECT id FROM Test WHERE name = 'Sit and Reach'), (SELECT id FROM User_Account WHERE username = 'trackUser1'), '0.18', 'Pending approval', '2026-06-30', 'Improving lower back flexibility.');
+INSERT INTO Physical_Quality (name) VALUES 
+('Force maximale des membres inférieurs'),
+('Force maximale des membres supérieurs'),
+('Puissance verticale'),
+('Puissance horizontale'),
+('Vitesse'),
+('Agilité'),
+('Endurance anaérobie'),
+('Composition corporelle'),
+('Endurance aérobie'),
+('Mobilité'),
+('Équilibre'),
+('Coordination');
+
+INSERT INTO Equipment (name_equipment) VALUES
+('Barre olympique et disques'),
+('Chronameètre électronique'),
+('Cônes de marquage'),
+('Mètre ruban'),
+('Boîte de souplesse (Sit & Reach)'),
+('Tapis de sol'),
+('Tapis roulant');
+
+INSERT INTO Tests (id_physical_quality, test_name, protocole, supervised, informations, proof_required) VALUES
+(1, '1RM Back Squat', 'Soulever le poids maximal sur une répétition avec une amplitude complète (cuisses parallèles au sol).', TRUE, 'Échauffement progressif obligatoire avant les essais.', TRUE),
+(2, 'Test Léger-Boucher (Beep Test)', 'Course navette de 20m à vitesse progressive guidée par des bips sonores jusqu''à épuisement.', TRUE, 'Prévoir une surface antidérapante.', FALSE),
+(3, 'Sprint 30m', 'Course en ligne droite sur 30m départ arrêté. Measure du temps total.', FALSE, 'Utiliser idéalement des cellules photoélectriques.', TRUE),
+(4, 'Pro Agility 5-10-5', 'Course latérale de 5 verges à droite, 10 verges à gauche, et retour au centre.', FALSE, 'Changements de direction francs.', FALSE),
+(5, 'Sit and Reach', 'Flexion du tronc vers l''avant en position assise, jambes tendues contre la boîte de measure.', FALSE, 'Garder les genoux parfaitement tendus.', FALSE);
+
+INSERT INTO Result_Type (id_test, id_unit_measure, name, data_type) VALUES
+(1, 1, 'Poids maximal levé', 'DECIMAL'),         -- 1RM Back Squat (kg)
+(2, 3, 'Palier atteint', 'INTEGER'),              -- Beep Test (reps/palier)
+(2, 6, 'Fréquence cardiaque max', 'INTEGER'),    -- Beep Test (bpm)
+(3, 2, 'Temps total 30m', 'DECIMAL'),            -- Sprint 30m (s)
+(4, 2, 'Temps de parcours', 'DECIMAL'),          -- Pro Agility (s)
+(5, 4, 'Distance atteinte', 'DECIMAL');          -- Sit and Reach (cm)
+
+INSERT INTO Test_Equipment (id_test, id_equipment, required_quantity) VALUES
+(1, 1, 1), -- 1RM Back Squat requires 1 Barre olympique
+(2, 3, 4), -- Beep test requires 4 Cônes
+(3, 2, 1), -- Sprint 30m requires 1 Chronameètre
+(3, 3, 2), -- Sprint 30m requires 2 Cônes
+(3, 4, 1), -- Sprint 30m requires 1 Mètre ruban
+(4, 3, 3), -- Pro Agility requires 3 Cônes
+(5, 5, 1); -- Sit and Reach requires 1 Boîte de souplesse
+
+-- ============================================================================
+-- 5. TEST BATTERIES & BATTERY ASSIGNMENTS
+-- ============================================================================
+INSERT INTO Battery (id_team, name_battery, status) VALUES
+((SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Évaluation Physique Début de Saison', TRUE),
+((SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'), 'Test de Puissance & Vitesse', TRUE),
+((SELECT id FROM Team WHERE name = 'Piranhas Volleyball'), 'Batterie Initiale Volleyball', FALSE);
+
+INSERT INTO Battery_Test (id_battery, id_test) VALUES
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Évaluation Physique Début de Saison'), (SELECT id_test FROM Tests WHERE test_name = 'Sit and Reach')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Test de Puissance & Vitesse'), (SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m')),
+((SELECT id_battery FROM Battery WHERE name_battery = 'Test de Puissance & Vitesse'), (SELECT id_test FROM Tests WHERE test_name = 'Pro Agility 5-10-5'));
+
+-- ============================================================================
+-- 6. RESULTS & RESULT VALUES
+-- ============================================================================
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ 'https://proofs.etsmtl.ca/squat_trackuser1.mp4',
+ 'Accepted',
+ 'Excellente forme, valide.',
+ '2026-05-10');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser1') AND id_test = (SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Poids maximal levé'),
+ 140.50);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ 'https://proofs.etsmtl.ca/sprint_trackuser1.mp4',
+ 'Accepted',
+ 'Chrono validé par cellule photoélectrique.',
+ '2026-05-12');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser1') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Temps total 30m'),
+ 4.15);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser2'),
+ NULL,
+ 'Pending approval',
+ 'En attente de validation du kinésiologue.',
+ '2026-05-15');
+
+INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser2') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Palier atteint'),
+ 11.00),
+((SELECT id_result FROM Result WHERE id_athlete = (SELECT id FROM User_Account WHERE username = 'trackUser2') AND id_test = (SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)')),
+ (SELECT id_result_type FROM Result_Type WHERE name = 'Fréquence cardiaque max'),
+ 188.00);
+
+INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+((SELECT id_test FROM Tests WHERE test_name = 'Pro Agility 5-10-5'),
+ (SELECT id FROM User_Account WHERE username = 'trackUser3'),
+ NULL,
+ 'Assigned',
+ 'À réaliser la semaine prochaine.',
+ '2026-05-20');

@@ -1,41 +1,45 @@
 package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTest;
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTestProof;
-import com.centresportifets.athlets_backend.physicalTest.PhysicalTestRepository;
+import com.centresportifets.athlets_backend.result.dto.ResultValueSubmissionDTO;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
+import com.centresportifets.athlets_backend.tests.PhysicalTest;
+import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
+import com.centresportifets.athlets_backend.tests.ResultType;
+import com.centresportifets.athlets_backend.tests.ResultTypeRepository;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
 public class ResultService {
+
     private final AuthService authService;
     private final AthleteRepository athleteRepository;
     private final CoachRepository coachRepository;
     private final PhysicalTestRepository physicalTestRepository;
     private final ResultRepository resultRepository;
+    private final ResultTypeRepository resultTypeRepository;
+    private final ResultValueRepository resultValueRepository;
 
     private static final Logger log = LoggerFactory.getLogger(ResultService.class);
 
@@ -54,6 +58,7 @@ public class ResultService {
         });
     }
 
+    @Transactional
     public void submitAthleteResult(TestResultSubmission resultSubmission, Authentication auth) {
         Result result = resultRepository.findById(resultSubmission.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
@@ -62,18 +67,41 @@ public class ResultService {
             throw new AccessDeniedException("You are not authorized to submit this result.");
         }
 
-        validateProofRequirements(result, resultSubmission);
-
-        if (isMissing(resultSubmission.getResultValue())) {
-            throw new IllegalArgumentException("The result value is missing for this test");
+        if (result.getTest().isProofRequired() && isMissing(resultSubmission.getProof())) {
+            throw new IllegalArgumentException("Proof is required for this test");
         }
 
-        result.setResultValue(resultSubmission.getResultValue());
+        if (resultSubmission.getResultValues() == null || resultSubmission.getResultValues().isEmpty()) {
+            throw new IllegalArgumentException("At least one result value is required for this test");
+        }
+
+        resultValueRepository.deleteByResultId(result.getId());
+
+        for (ResultValueSubmissionDTO valueDTO : resultSubmission.getResultValues()) {
+            if (valueDTO.getValue() == null) {
+                throw new IllegalArgumentException("Result value cannot be null for result type ID: " + valueDTO.getResultTypeId());
+            }
+
+            ResultType resultType = resultTypeRepository.findById(valueDTO.getResultTypeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Result type not found with ID: " + valueDTO.getResultTypeId()));
+
+            ResultValue resultValue = new ResultValue();
+            resultValue.setResult(result);
+            resultValue.setResultType(resultType);
+            resultValue.setValue(valueDTO.getValue());
+
+            resultValueRepository.save(resultValue);
+        }
+
+        result.setProof(resultSubmission.getProof());
         result.setCommentText(resultSubmission.getComment());
+        result.setTestDate(LocalDate.now());
         result.setStatus(ResultStatus.PENDING.getStatus());
+
         resultRepository.save(result);
     }
 
+    @Transactional
     public void cancelSubmissionAthleteResult(Long testResultId, Authentication auth) {
         Result result = resultRepository.findById(testResultId)
                 .orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
@@ -82,6 +110,7 @@ public class ResultService {
             throw new AccessDeniedException("You are not authorized to cancel this submission.");
         }
 
+        resultValueRepository.deleteByResultId(result.getId());
         result.setStatus(ResultStatus.ASSIGNED.getStatus());
         resultRepository.save(result);
     }
@@ -90,7 +119,7 @@ public class ResultService {
     public void approveAthleteResult(Long testResultId, boolean approved) {
         Result result = resultRepository.findById(testResultId)
                 .orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
-        
+
         String status = approved ? ResultStatus.APPROVED.getStatus() : ResultStatus.REJECTED.getStatus();
         result.setStatus(status);
         resultRepository.save(result);
@@ -99,7 +128,7 @@ public class ResultService {
     public List<TestData> getTestResults(Authentication auth) {
         UserType currentType = authService.getAuthenticatedUserType(auth);
         log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
-        
+
         return switch (currentType) {
             case ADMIN -> resultRepository.findAll().stream().map(TestData::new).toList();
             case COACH -> getCoachTeamResults(auth.getName());
@@ -120,30 +149,7 @@ public class ResultService {
         return resultRepository.findByAthleteIdIn(athleteIds).stream().map(TestData::new).toList();
     }
 
-    private void validateProofRequirements(Result result, TestResultSubmission submission) {
-        PhysicalTestProof requiredProof = PhysicalTestProof.valueOf(result.getTest().getProof());
-        boolean videoMissing = isMissing(submission.getVideoProof());
-        boolean photoMissing = isMissing(submission.getImageProof());
-
-        switch (requiredProof) {
-            case VIDEO -> {
-                if (videoMissing) throw new IllegalArgumentException("A video proof is required for this test.");
-                result.setVideoProof(submission.getVideoProof());
-            }
-            case PHOTO -> {
-                if (photoMissing) throw new IllegalArgumentException("A photo proof is required for this test.");
-                result.setPhotoProof(submission.getImageProof());
-            }
-            case BOTH -> {
-                if (videoMissing || photoMissing) throw new IllegalArgumentException("Both photo and video proofs are required.");
-                result.setVideoProof(submission.getVideoProof());
-                result.setPhotoProof(submission.getImageProof());
-            }
-            default -> {}
-        }
-    }
-
-    private boolean isMissing(String proofString) {
-        return proofString == null || proofString.isBlank();
+    private boolean isMissing(String str) {
+        return str == null || str.isBlank();
     }
 }

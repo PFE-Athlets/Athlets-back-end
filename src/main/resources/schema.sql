@@ -1,3 +1,13 @@
+DROP TABLE IF EXISTS Battery_Test CASCADE;
+DROP TABLE IF EXISTS Battery CASCADE;
+DROP TABLE IF EXISTS Result_Value CASCADE;
+DROP TABLE IF EXISTS Result CASCADE;
+DROP TABLE IF EXISTS Test_Equipment CASCADE;
+DROP TABLE IF EXISTS Equipment CASCADE;
+DROP TABLE IF EXISTS Result_Type CASCADE;
+DROP TABLE IF EXISTS Tests CASCADE;
+DROP TABLE IF EXISTS Unit_Measure CASCADE;
+DROP TABLE IF EXISTS Physical_Quality CASCADE;
 DROP TABLE IF EXISTS Result CASCADE;
 DROP TABLE IF EXISTS Test CASCADE;
 DROP TABLE IF EXISTS Test_Battery CASCADE;
@@ -16,6 +26,7 @@ DROP TABLE IF EXISTS Sport CASCADE;
 DROP TABLE IF EXISTS Test_Sport CASCADE;
 DROP TABLE IF EXISTS athlete_team_position CASCADE;
 DROP TABLE IF EXISTS athlete_team_discipline CASCADE;
+
 
 -- ==========================================
 -- 1. REFERENCE TABLES & INDEPENDENT ENTITIES
@@ -178,47 +189,166 @@ CREATE TABLE Athlete_Team_Discipline (
     CONSTRAINT fk_atd_discipline FOREIGN KEY (discipline_id) REFERENCES Discipline(id) ON DELETE CASCADE,
     CONSTRAINT uq_athlete_team_discipline UNIQUE (athlete_id, team_id, discipline_id)
 );
--- ==========================================
--- 5. TESTING & PERFORMANCE
--- ==========================================
+-- ============================================================================
+-- 5. BATTERIES DE TEST
+-- ============================================================================
 
-CREATE TABLE Test_Battery (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(20) NOT NULL,
-    team_id INT,
-    group_id INT,
-    CONSTRAINT fk_battery_team FOREIGN KEY (team_id) REFERENCES Team(id) ON DELETE SET NULL,
-    CONSTRAINT fk_battery_group FOREIGN KEY (group_id) REFERENCES Group_Table(id) ON DELETE SET NULL
+CREATE TABLE Physical_Quality (
+    id_physical_quality SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL CONSTRAINT uq_physical_quality_name UNIQUE,
+    description VARCHAR(500)
 );
 
-CREATE TABLE Test (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(20) NOT NULL,
-    unit_of_measure VARCHAR(20) NOT NULL,
-    protocol TEXT,
-    proof_needed VARCHAR(20) NOT NULL DEFAULT 'None',
-    CONSTRAINT chk_test_proof_needed CHECK (proof_needed IN ('None', 'Photo', 'Video', 'Both'))
+CREATE TABLE Unit_Measure (
+    id_unit SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL CONSTRAINT uq_unit_measure_name UNIQUE,
+    symbole VARCHAR(20) NOT NULL CONSTRAINT uq_unit_measure_symbole UNIQUE
+);
+
+CREATE TABLE Tests (
+    id_test SERIAL PRIMARY KEY,
+    id_physical_quality INT NOT NULL,
+    test_name VARCHAR(100) NOT NULL CONSTRAINT uq_tests_name UNIQUE,
+    protocole TEXT NOT NULL,
+    supervised BOOLEAN DEFAULT FALSE NOT NULL,
+    informations TEXT,
+    proof_required BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT fk_tests_physical_quality
+        FOREIGN KEY (id_physical_quality)
+        REFERENCES Physical_Quality(id_physical_quality)
+);
+
+CREATE TABLE Result_Type (
+    id_result_type SERIAL PRIMARY KEY,
+    id_test INT NOT NULL,
+    id_unit_measure INT NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    data_type VARCHAR(20) DEFAULT 'DECIMAL' NOT NULL,
+
+    CONSTRAINT fk_result_type_test
+        FOREIGN KEY (id_test)
+        REFERENCES Tests(id_test)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_result_type_unit
+        FOREIGN KEY (id_unit_measure)
+        REFERENCES Unit_Measure(id_unit),
+
+    CONSTRAINT uq_result_type_test_name
+        UNIQUE (id_test, name),
+
+    CONSTRAINT ck_result_type_type
+        CHECK (
+            data_type IN (
+                'INTEGER',
+                'DECIMAL',
+                'TEXT',
+                'BOOLEAN'
+            )
+        )
+);
+
+CREATE TABLE Equipment (
+    id_equipment SERIAL PRIMARY KEY,
+    name_equipment VARCHAR(100) NOT NULL CONSTRAINT uq_equipment_name UNIQUE
+);
+
+CREATE TABLE Test_Equipment (
+    id_test INT NOT NULL,
+    id_equipment INT NOT NULL,
+    required_quantity INT DEFAULT 1 NOT NULL,
+
+    CONSTRAINT pk_test_equipment
+        PRIMARY KEY (id_test, id_equipment),
+
+    CONSTRAINT fk_test_equipment_test
+        FOREIGN KEY (id_test)
+        REFERENCES Tests(id_test)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_test_equipment_equipment
+        FOREIGN KEY (id_equipment)
+        REFERENCES Equipment(id_equipment),
+
+    CONSTRAINT ck_test_equipment_quantity
+        CHECK (required_quantity >= 1)
 );
 
 CREATE TABLE Result (
-    id SERIAL PRIMARY KEY,
-    test_id INT NOT NULL,
-    athlete_id INT NOT NULL,
-    result_value VARCHAR(10),
-    video_proof TEXT,
-    photo_proof TEXT,
-    status VARCHAR(25) NOT NULL DEFAULT 'Assigned',
-    comment_text TEXT,
-    test_date DATE NOT NULL DEFAULT CURRENT_DATE, 
-    CONSTRAINT fk_result_test FOREIGN KEY (test_id) REFERENCES Test(id) ON DELETE CASCADE,
-    CONSTRAINT fk_result_athlete FOREIGN KEY (athlete_id) REFERENCES Athlete(user_id) ON DELETE CASCADE,
-    CONSTRAINT chk_result_status CHECK (status IN ('Approved', 'Rejected', 'Pending approval', 'Assigned'))
+    id_result SERIAL PRIMARY KEY,
+    id_test INT NOT NULL,
+    id_athlete INT NOT NULL,
+    proof VARCHAR(500),
+    status VARCHAR(20) DEFAULT 'Assigned' NOT NULL,
+    comment TEXT,
+    date_result DATE DEFAULT CURRENT_DATE NOT NULL,
+
+    CONSTRAINT fk_result_test
+        FOREIGN KEY (id_test)
+        REFERENCES Tests(id_test),
+
+    CONSTRAINT fk_result_athlete
+        FOREIGN KEY (id_athlete)
+        REFERENCES Athlete(user_id),
+
+    CONSTRAINT ck_result_status
+        CHECK (
+            status IN (
+                'Assigned',
+                'Accepted',
+                'Rejected',
+                'Pending approval'
+            )
+        )
 );
 
-CREATE TABLE Test_Sport (
-    test_id INT NOT NULL,
-    sport_id INT NOT NULL,
-    PRIMARY KEY (test_id, sport_id),
-    CONSTRAINT fk_test_sport_test FOREIGN KEY (test_id) REFERENCES Test(id) ON DELETE CASCADE,
-    CONSTRAINT fk_test_sport_sport FOREIGN KEY (sport_id) REFERENCES Sport(id) ON DELETE CASCADE
+CREATE TABLE Result_Value (
+    id_result_value SERIAL PRIMARY KEY,
+    id_result INT NOT NULL,
+    id_result_type INT NOT NULL,
+    value NUMERIC(10,2) NOT NULL,
+
+    CONSTRAINT fk_value_result_result
+        FOREIGN KEY (id_result)
+        REFERENCES Result(id_result)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_value_result_type
+        FOREIGN KEY (id_result_type)
+        REFERENCES Result_Type(id_result_type),
+
+    CONSTRAINT uq_valeur_result_result_type
+        UNIQUE (id_result, id_result_type)
+);
+
+CREATE TABLE Battery (
+    id_battery SERIAL PRIMARY KEY,
+    id_team INT NOT NULL,
+    name_battery VARCHAR(100) NOT NULL,
+    status BOOLEAN DEFAULT FALSE NOT NULL,
+
+    CONSTRAINT fk_battery_team
+        FOREIGN KEY (id_team)
+        REFERENCES Team(id),
+
+    CONSTRAINT uq_battery_team_name
+        UNIQUE (id_team, name_battery)
+);
+
+CREATE TABLE Battery_Test (
+    id_battery INT NOT NULL,
+    id_test INT NOT NULL,
+
+    CONSTRAINT pk_battery_test
+        PRIMARY KEY (id_battery, id_test),
+
+    CONSTRAINT fk_battery
+        FOREIGN KEY (id_battery)
+        REFERENCES Battery(id_battery)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_test
+        FOREIGN KEY (id_test)
+        REFERENCES Tests(id_test)
 );
