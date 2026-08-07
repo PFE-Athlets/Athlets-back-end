@@ -27,9 +27,16 @@ public class AthleteController {
     private final AthleteService athleteService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAthlete(Authentication auth, @RequestBody AthleteCreateRequest request) {
-        athleteService.createAthlete(request, auth);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<String> createAthlete(Authentication auth, @RequestBody AthleteCreateRequest request) {
+        String activationLink =
+            athleteService.createAthlete(
+                    request,
+                    auth
+            );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(activationLink);
     }
 
     @GetMapping("/all")
