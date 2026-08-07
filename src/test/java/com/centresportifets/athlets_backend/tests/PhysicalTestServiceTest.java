@@ -22,6 +22,7 @@ import com.centresportifets.athlets_backend.auth.AuthService;
 import com.centresportifets.athlets_backend.team.AthleteTeam;
 import com.centresportifets.athlets_backend.team.AthleteTeamId;
 import com.centresportifets.athlets_backend.team.Team;
+import com.centresportifets.athlets_backend.team.TeamRepository;
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.tests.dto.BatteryModRequest;
@@ -72,6 +73,9 @@ class PhysicalTestServiceTest {
     private AthleteRepository athleteRepository;
 
     @Mock
+    private TeamRepository teamRepository;
+
+    @Mock
     private Authentication authentication;
 
     private PhysicalTestService physicalTestService;
@@ -89,7 +93,8 @@ class PhysicalTestServiceTest {
                 batteryRepository,
                 authService,
                 coachRepository,
-                athleteRepository
+                athleteRepository,
+                teamRepository
         );
     }
 
