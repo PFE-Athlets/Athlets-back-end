@@ -115,11 +115,20 @@ public class AuthController {
 	 * @return neutral confirmation response
 	 */
 	@PostMapping("/password-reset/request")
-	public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
-		authService.generatePasswordResetToken(request.getEmail());
+    public ResponseEntity<?> requestPasswordReset(
+            @RequestBody PasswordResetRequest request
+    ) {
+        try {
+            String resetLink = authService.generatePasswordResetToken(request.getEmail());
 
-		return ResponseEntity.ok().build();
-	}
+            return ResponseEntity.ok(resetLink);
+        } catch (
+                IllegalArgumentException |
+                IllegalStateException exception
+        ) {
+            return ResponseEntity.badRequest().body(Map.of("erreur",exception.getMessage()));
+        }
+    }
 
 	/**
 	 * Resets a user's password using a valid password reset token.
