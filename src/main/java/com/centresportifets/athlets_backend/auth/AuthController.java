@@ -1,7 +1,13 @@
 package com.centresportifets.athlets_backend.auth;
 
+import com.centresportifets.athlets_backend.auth.dto.ActivateAccountRequest;
+import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
+import com.centresportifets.athlets_backend.auth.dto.GenerateActivationTokenRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.Optional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
 import com.centresportifets.athlets_backend.auth.dto.AuthUser;
 import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.auth.dto.PasswordResetRequest;
+import com.centresportifets.athlets_backend.auth.dto.ResetPasswordRequest;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,17 +73,87 @@ public class AuthController {
 	}
 
 	/**
-	 * Handles the logout flow of the application
+	 * Temporary endpoint used to generate an activation token for an existing account.
+	 * This should later be replaced by automatic token generation during athlete creation.
 	 *
-	 * @param authentication the current authentication object, used to identify the
-	 *                       user session to be terminated
-	 * @param request        the incoming HTTP request used to identify the session
-	 *                       to be terminated
-	 * @param response       the outgoing HTTP response where the JSESSIONID cookie
-	 *                       is removed upon
-	 *                       success
-	 * @return a {@link ResponseEntity} returning {@code 200 OK} with a
-	 *         placeholder text on success.
+	 * @param request Request containing the username of the account to activate
+	 * @return generated activation link
+	 */
+	@PostMapping("/dev/generate-activation-token")
+	public ResponseEntity<?> generateActivationToken(
+			@RequestBody GenerateActivationTokenRequest request) {
+		try {
+			String activationLink = authService.generateActivationTokenForUsername(request.getUsername());
+
+			return ResponseEntity.ok(activationLink);
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Activates an account using a valid activation token.
+	 *
+	 * @param request Request containing the activation token and new password
+	 * @return success or error response
+	 */
+	@PostMapping("/activate")
+	public ResponseEntity<?> activateAccount(@RequestBody ActivateAccountRequest request) {
+		try {
+			authService.activateAccount(request);
+
+			return ResponseEntity.ok().build();
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Generates a password reset token for an active account.
+	 *
+	 * @param request Request containing the email of the account
+	 * @return neutral confirmation response
+	 */
+	@PostMapping("/password-reset/request")
+    public ResponseEntity<?> requestPasswordReset(
+            @RequestBody PasswordResetRequest request
+    ) {
+        try {
+            String resetLink = authService.generatePasswordResetToken(request.getEmail());
+
+            return ResponseEntity.ok(resetLink);
+        } catch (
+                IllegalArgumentException |
+                IllegalStateException exception
+        ) {
+            return ResponseEntity.badRequest().body(Map.of("erreur",exception.getMessage()));
+        }
+    }
+
+	/**
+	 * Resets a user's password using a valid password reset token.
+	 *
+	 * @param request Request containing the reset token and new password
+	 * @return success response
+	 */
+	@PostMapping("/password-reset/confirm")
+	public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+		try {
+			authService.resetPassword(request);
+
+			return ResponseEntity.ok().build();
+		} catch (IllegalArgumentException exception) {
+			return ResponseEntity.badRequest().body(Map.of("erreur", exception.getMessage()));
+		}
+	}
+
+	/**
+	 * Handles the logout flow of the application.
+	 *
+	 * @param authentication the current authentication object
+	 * @param request the incoming HTTP request
+	 * @param response the outgoing HTTP response
+	 * @return a {@link ResponseEntity} returning {@code 200 OK}
 	 */
 	@PostMapping("/logout")
 	public ResponseEntity<?> logoutUser(

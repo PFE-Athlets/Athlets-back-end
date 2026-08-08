@@ -22,6 +22,7 @@ import com.centresportifets.athlets_backend.team.AthleteTeamPositionRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.team.Team;
 import com.centresportifets.athlets_backend.team.TeamRepository;
+import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
@@ -32,6 +33,7 @@ import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 import com.centresportifets.athlets_backend.user.kine.Kine;
 import com.centresportifets.athlets_backend.user.kine.KineRepository;
 import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -50,18 +52,30 @@ public class AthleteService {
     private final AthleteTeamDisciplineRepository athleteTeamDisciplineRepository;
     private final PositionRepository positionRepository;
     private final DisciplineRepository disciplineRepository;
+    private final UserAccountRepository userAccountRepository;
 
     @Transactional
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
-    public void createAthlete(AthleteCreateRequest request, Authentication auth) {
+    public String createAthlete(AthleteCreateRequest request, Authentication auth) {
+        if (userAccountRepository.existsByEmail(request.getEmail().trim())) {
+            throw new IllegalArgumentException("Ce courriel est déjà utilisé.");
+        }
+
+        if (userAccountRepository.existsByUsername(request.getUsername().trim())) {
+            throw new IllegalArgumentException("Ce nom d'utilisateur est déjà utilisé.");
+        }
+
         if (!authService.canAccessTeams(auth, request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList())) {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
 
         Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
-        athleteRepository.save(athlete);
+        athlete.setAccountStatus(UserStatus.PENDING.getStatus());
+        athlete = athleteRepository.save(athlete);
 
         createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), new ArrayList<>(), new ArrayList<>());
+
+        return authService.generateActivationTokenForUser(athlete);
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")

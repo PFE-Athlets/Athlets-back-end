@@ -1,11 +1,19 @@
 package com.centresportifets.athlets_backend.auth;
 
+import com.centresportifets.athlets_backend.auth.dto.ActivateAccountRequest;
+import com.centresportifets.athlets_backend.auth.dto.ResetPasswordRequest;
+import com.centresportifets.athlets_backend.auth.token.AccountToken;
+import com.centresportifets.athlets_backend.auth.token.AccountTokenRepository;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
+import com.centresportifets.athlets_backend.user.UserType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +26,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import com.centresportifets.athlets_backend.email.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.user.UserAccount;
@@ -36,7 +46,14 @@ import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
 @Component("authService")
 @Service
 public class AuthService {
+
+	private static final String PASSWORD_RESET_TOKEN_TYPE = "PASSWORD_RESET";
+	private static final String ACTIVATION_TOKEN_TYPE = "ACTIVATION";
+	private static final int ACTIVATION_TOKEN_EXPIRATION_HOURS = 72;
+	private static final int PASSWORD_RESET_TOKEN_EXPIRATION_HOURS = 1;
+
 	private final UserAccountRepository userRepository;
+	private final AccountTokenRepository accountTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
 	private final AthleteTeamRepository athleteTeamRepository;
@@ -46,6 +63,11 @@ public class AuthService {
 	private final AthleteRepository athleteRepository;
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
+
+	private final EmailService emailService;
+
+	@Value("${app.frontend.base-url:http://localhost:5173}")
+	private String frontendBaseUrl;
 
 	/**
 	 * Verifies inbound login attempts.
@@ -70,6 +92,236 @@ public class AuthService {
 		return passwordEncoder.matches(rawPassword, realUser.getPassword())
 				? Optional.of(realUser)
 				: Optional.empty();
+	}
+
+	/**
+	 * Generates an activation token for an existing user.
+	 * This method is temporary until athlete creation automatically triggers token creation.
+	 *
+	 * @param username Username of the account to activate
+	 * @return Activation link to use from the frontend
+	 */
+	public String generateActivationTokenForUsername(String username) {
+		if (username == null || username.isBlank()) {
+			throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire.");
+		}
+
+		UserAccount user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new IllegalArgumentException("Aucun utilisateur trouvé avec ce nom d'utilisateur."));
+
+		return generateActivationTokenForUser(user);
+	}
+
+	/**
+	 * Generates an activation token for a user account.
+	 *
+	 * @param user User account to activate
+	 * @return Activation link to use from the frontend
+	 */
+	public String generateActivationTokenForUser(UserAccount user) {
+		if (user == null) {
+			throw new IllegalArgumentException("L'utilisateur est obligatoire.");
+		}
+
+		if (!UserStatus.PENDING.getStatus().equals(user.getAccountStatus())) {
+			throw new IllegalArgumentException("Ce compte n'est pas en attente d'activation.");
+		}
+
+		List<AccountToken> activeTokens =
+				accountTokenRepository.findByUserAndTypeAndUsedAtIsNull(user, ACTIVATION_TOKEN_TYPE);
+
+		for (AccountToken activeToken : activeTokens) {
+			activeToken.setUsedAt(LocalDateTime.now());
+		}
+
+		accountTokenRepository.saveAll(activeTokens);
+
+		String tokenValue = UUID.randomUUID().toString();
+
+		AccountToken accountToken = new AccountToken();
+		accountToken.setToken(tokenValue);
+		accountToken.setType(ACTIVATION_TOKEN_TYPE);
+		accountToken.setUser(user);
+		accountToken.setExpiresAt(LocalDateTime.now().plusHours(ACTIVATION_TOKEN_EXPIRATION_HOURS));
+
+		accountTokenRepository.save(accountToken);
+
+		String activationLink = frontendBaseUrl + "/activation-compte?token=" + tokenValue;
+
+
+		emailService.sendActivationEmail(user.getEmail(), activationLink);
+
+		System.out.println("Lien d'activation généré : " + activationLink);
+
+		return activationLink;
+	}
+
+	/**
+	 * Activates an account using a valid activation token and sets the user's password.
+	 *
+	 * @param request Activation request containing token and new password
+	 */
+	public void activateAccount(ActivateAccountRequest request) {
+		validateActivationRequest(request);
+
+		AccountToken accountToken = accountTokenRepository.findByToken(request.getToken())
+				.orElseThrow(() -> new IllegalArgumentException("Le lien d'activation est invalide ou expiré."));
+
+		if (!ACTIVATION_TOKEN_TYPE.equals(accountToken.getType())) {
+			throw new IllegalArgumentException("Le lien d'activation est invalide.");
+		}
+
+		if (accountToken.isUsed()) {
+			throw new IllegalArgumentException("Ce lien d'activation a déjà été utilisé.");
+		}
+
+		if (accountToken.isExpired()) {
+			throw new IllegalArgumentException("Ce lien d'activation est expiré.");
+		}
+
+		UserAccount user = accountToken.getUser();
+
+		if (!UserStatus.PENDING.getStatus().equals(user.getAccountStatus())) {
+			throw new IllegalArgumentException("Ce compte est déjà activé ou ne peut pas être activé.");
+		}
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		user.setAccountStatus(UserStatus.ACTIVE.getStatus());
+
+		accountToken.setUsedAt(LocalDateTime.now());
+
+		userRepository.save(user);
+		accountTokenRepository.save(accountToken);
+	}
+
+	/**
+	 * Validates the activation request.
+	 *
+	 * @param request Activation request to validate
+	 */
+	private void validateActivationRequest(ActivateAccountRequest request) {
+		if (request == null) {
+			throw new IllegalArgumentException("La demande d'activation est invalide.");
+		}
+
+		if (request.getToken() == null || request.getToken().isBlank()) {
+			throw new IllegalArgumentException("Le lien d'activation est invalide.");
+		}
+
+		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+			throw new IllegalArgumentException("Le nouveau mot de passe est obligatoire.");
+		}
+
+		if (request.getConfirmPassword() == null || request.getConfirmPassword().isBlank()) {
+			throw new IllegalArgumentException("La confirmation du mot de passe est obligatoire.");
+		}
+
+		if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+			throw new IllegalArgumentException("Les mots de passe ne correspondent pas.");
+		}
+
+		if (request.getNewPassword().length() < 8) {
+			throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
+		}
+	}
+
+	/**
+	 * Generates a password reset token for a user account.
+	 *
+	 * @param email Email account to reset
+	 * @return Reset link to use from the frontend
+	 */
+	public String generatePasswordResetToken(String email) {
+		if (email == null || email.isBlank()) {
+			throw new IllegalArgumentException("Email requis.");
+		}
+
+		Optional<UserAccount> userOptional = userRepository.findByEmail(email);
+
+		if (userOptional.isEmpty()) {
+			throw new IllegalArgumentException("Utilisateur introuvable.");
+		}
+
+		UserAccount user = userOptional.get();
+
+		if (!UserStatus.ACTIVE.getStatus().equals(user.getAccountStatus())) {
+			throw new IllegalStateException("Le compte utilisateur n'est pas actif.");
+		}
+
+		accountTokenRepository.findByUserAndTypeAndUsedAtIsNull(user, PASSWORD_RESET_TOKEN_TYPE)
+				.forEach(activeToken -> {
+					activeToken.setUsedAt(LocalDateTime.now());
+					accountTokenRepository.save(activeToken);
+				});
+
+		String tokenValue = UUID.randomUUID().toString();
+
+		AccountToken accountToken = new AccountToken();
+		accountToken.setToken(tokenValue);
+		accountToken.setType(PASSWORD_RESET_TOKEN_TYPE);
+		accountToken.setUser(user);
+		accountToken.setExpiresAt(LocalDateTime.now().plusHours(PASSWORD_RESET_TOKEN_EXPIRATION_HOURS));
+
+		accountTokenRepository.save(accountToken);
+
+		String resetLink = frontendBaseUrl + "/reinitialisation-mot-de-passe?token=" + tokenValue;
+
+		emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+
+		System.out.println("Lien de réinitialisation généré : " + resetLink);
+		System.out.println("Lien de réinitialisation pour " + user.getEmail() + " : " + resetLink);
+
+		return resetLink;
+	}
+
+	/**
+	 * Resets the password for a user account using a valid reset token.
+	 *
+	 * @param request Reset password request containing token and new password
+	 */
+	public void resetPassword(ResetPasswordRequest request) {
+		if (request.getToken() == null || request.getToken().isBlank()) {
+			throw new IllegalArgumentException("Token requis.");
+		}
+
+		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+			throw new IllegalArgumentException("Nouveau mot de passe requis.");
+		}
+
+		if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+			throw new IllegalArgumentException("Les mots de passe ne correspondent pas.");
+		}
+
+		if (request.getNewPassword().length() < 8) {
+			throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
+		}
+
+		AccountToken accountToken = accountTokenRepository.findByToken(request.getToken())
+				.orElseThrow(() -> new IllegalArgumentException("Token invalide."));
+
+		if (!PASSWORD_RESET_TOKEN_TYPE.equals(accountToken.getType())) {
+			throw new IllegalArgumentException("Token invalide.");
+		}
+
+		if (accountToken.isUsed()) {
+			throw new IllegalArgumentException("Token déjà utilisé.");
+		}
+
+		if (accountToken.isExpired()) {
+			throw new IllegalArgumentException("Token expiré.");
+		}
+
+		UserAccount user = accountToken.getUser();
+
+		if (!UserStatus.ACTIVE.getStatus().equals(user.getAccountStatus())) {
+			throw new IllegalArgumentException("Le compte n'est pas actif.");
+		}
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		accountToken.setUsedAt(LocalDateTime.now());
+
+		userRepository.save(user);
+		accountTokenRepository.save(accountToken);
 	}
 
 	/**

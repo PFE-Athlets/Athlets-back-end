@@ -3,7 +3,7 @@ package com.centresportifets.athlets_backend.user;
 public enum UserStatus {
     ACTIVE("Active"),
     INACTIVE("Inactive"),
-    WAITING("Waiting");
+    PENDING("Pending");
 
     private final String status;
 

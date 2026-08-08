@@ -18,6 +18,21 @@ spring:
         compose:
             enabled: true
             file: docker-compose.yml
+app:
+    frontend:
+        base-url: http://localhost:5173
+    mail:
+        enabled: ${MAIL_ENABLED:false}
+        from: ${MAIL_FROM:pfe.athlets@etsmtl.ca}
+
+        azure:
+            tenant-id: ${AZURE_TENANT_ID:}
+            client-id: ${AZURE_CLIENT_ID:}
+            client-secret: ${AZURE_CLIENT_SECRET:}
+
+        graph:
+            base-url: https://graph.microsoft.com
+            scope: https://graph.microsoft.com/.default
 logging:
     level:
         org:
