@@ -13,6 +13,7 @@ import com.centresportifets.athlets_backend.user.athlete.dto.AthleteData;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteUpdateRequest;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,9 +28,10 @@ public class AthleteController {
     private final AthleteService athleteService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAthlete(Authentication auth, @RequestBody AthleteCreateRequest request) {
-        athleteService.createAthlete(request, auth);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<?> createAthlete(Authentication auth, @Valid @RequestBody AthleteCreateRequest request) {
+        String activationLink = athleteService.createAthlete(request, auth);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(activationLink);
     }
 
     @GetMapping("/all")
