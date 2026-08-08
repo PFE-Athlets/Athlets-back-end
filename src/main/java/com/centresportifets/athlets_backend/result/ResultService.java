@@ -1,23 +1,12 @@
 package com.centresportifets.athlets_backend.result;
 
-import com.centresportifets.athlets_backend.auth.AuthService;
-import com.centresportifets.athlets_backend.result.dto.ResultValueSubmissionDTO;
-import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
-import com.centresportifets.athlets_backend.result.dto.TestData;
-import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
-import com.centresportifets.athlets_backend.tests.PhysicalTest;
-import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
-import com.centresportifets.athlets_backend.tests.ResultType;
-import com.centresportifets.athlets_backend.tests.ResultTypeRepository;
-import com.centresportifets.athlets_backend.user.UserType;
-import com.centresportifets.athlets_backend.user.athlete.Athlete;
-import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
-import com.centresportifets.athlets_backend.user.coach.Coach;
-import com.centresportifets.athlets_backend.user.coach.CoachRepository;
-
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +15,28 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.centresportifets.athlets_backend.auth.AuthService;
+import com.centresportifets.athlets_backend.result.dto.ResultPageData;
+import com.centresportifets.athlets_backend.result.dto.ResultRowData;
+import com.centresportifets.athlets_backend.result.dto.ResultValueSubmissionDTO;
+import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
+import com.centresportifets.athlets_backend.result.dto.TestData;
+import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
+import com.centresportifets.athlets_backend.team.AthleteTeam;
+import com.centresportifets.athlets_backend.team.Team;
+import com.centresportifets.athlets_backend.tests.PhysicalTest;
+import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
+import com.centresportifets.athlets_backend.tests.ResultType;
+import com.centresportifets.athlets_backend.tests.ResultTypeRepository;
+import com.centresportifets.athlets_backend.tests.battery.Battery;
+import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.athlete.Athlete;
+import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
+import com.centresportifets.athlets_backend.user.coach.Coach;
+import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +51,7 @@ public class ResultService {
     private final ResultRepository resultRepository;
     private final ResultTypeRepository resultTypeRepository;
     private final ResultValueRepository resultValueRepository;
+    private final BatteryRepository batteryRepository;
 
     private static final Logger log = LoggerFactory.getLogger(ResultService.class);
 
@@ -125,18 +137,35 @@ public class ResultService {
         resultRepository.save(result);
     }
 
+    @Transactional(readOnly = true)
     public List<TestData> getTestResults(Authentication auth) {
         UserType currentType = authService.getAuthenticatedUserType(auth);
         log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
 
+        return getVisibleResults(auth).stream().map(TestData::new).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ResultPageData getResultPageData(Authentication auth) {
+        List<ResultRowData> rows = getVisibleResults(auth).stream()
+                .map(this::toResultRow)
+                .toList();
+
+        return new ResultPageData(rows, buildFilterOptions(rows));
+    }
+
+    private List<Result> getVisibleResults(Authentication auth) {
+        UserType currentType = authService.getAuthenticatedUserType(auth);
+        log.info("User {} with role {} is retrieving test results", auth.getName(), currentType);
+
         return switch (currentType) {
-            case ADMIN -> resultRepository.findAll().stream().map(TestData::new).toList();
+            case ADMIN -> resultRepository.findAll();
             case COACH -> getCoachTeamResults(auth.getName());
-            default -> resultRepository.findByAthleteUsername(auth.getName()).stream().map(TestData::new).toList();
+            default -> resultRepository.findByAthleteUsername(auth.getName());
         };
     }
 
-    private List<TestData> getCoachTeamResults(String coachUsername) {
+    private List<Result> getCoachTeamResults(String coachUsername) {
         Coach coach = coachRepository.findByUsername(coachUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
 
@@ -146,7 +175,202 @@ public class ResultService {
         }
 
         List<Long> athleteIds = teamAthletes.stream().map(Athlete::getId).toList();
-        return resultRepository.findByAthleteIdIn(athleteIds).stream().map(TestData::new).toList();
+        return resultRepository.findByAthleteIdIn(athleteIds);
+    }
+
+    private ResultRowData toResultRow(Result result) {
+        Battery battery = resolveBattery(result);
+        Team team = battery != null ? battery.getTeam() : resolvePrimaryTeam(result.getAthlete());
+        List<ResultRowData.ValueSummary> valueSummaries = result.getResultValues().stream()
+                .map(this::toValueSummary)
+                .toList();
+
+        return new ResultRowData(
+                result.getId(),
+                result.getTestDate(),
+                toStatusCode(result.getStatus()),
+                toStatusLabel(result.getStatus()),
+                result.getCommentText(),
+                result.getProof(),
+                new ResultRowData.AthleteSummary(
+                        result.getAthlete().getId(),
+                        result.getAthlete().getUsername(),
+                        result.getAthlete().getFirstName(),
+                        result.getAthlete().getLastName(),
+                        formatDisplayName(result.getAthlete().getFirstName(), result.getAthlete().getLastName())),
+                new ResultRowData.NamedEntitySummary(
+                        result.getTest().getId(),
+                        result.getTest().getName()),
+                team == null
+                        ? null
+                        : new ResultRowData.NamedEntitySummary(team.getId(), team.getName()),
+                battery == null
+                        ? null
+                        : new ResultRowData.NamedEntitySummary(battery.getId(), battery.getName()),
+                toIntervenantSummary(result.getIntervenant()),
+                valueSummaries,
+                buildResultValueSummary(valueSummaries));
+    }
+
+    private ResultPageData.FilterOptions buildFilterOptions(List<ResultRowData> rows) {
+        LocalDate minDate = null;
+        LocalDate maxDate = null;
+        Map<Long, ResultPageData.NamedOption> athletes = new LinkedHashMap<>();
+        Map<Long, ResultPageData.NamedOption> tests = new LinkedHashMap<>();
+        Map<Long, ResultPageData.NamedOption> teams = new LinkedHashMap<>();
+        Map<Long, ResultPageData.NamedOption> batteries = new LinkedHashMap<>();
+        Map<String, ResultPageData.StatusOption> statuses = new LinkedHashMap<>();
+
+        for (ResultRowData row : rows) {
+            if (row.getTestDate() != null) {
+                if (minDate == null || row.getTestDate().isBefore(minDate)) {
+                    minDate = row.getTestDate();
+                }
+
+                if (maxDate == null || row.getTestDate().isAfter(maxDate)) {
+                    maxDate = row.getTestDate();
+                }
+            }
+
+            if (row.getAthlete() != null && row.getAthlete().getId() != null) {
+                athletes.putIfAbsent(
+                        row.getAthlete().getId(),
+                        new ResultPageData.NamedOption(row.getAthlete().getId(), row.getAthlete().getDisplayName()));
+            }
+
+            if (row.getTest() != null && row.getTest().getId() != null) {
+                tests.putIfAbsent(
+                        row.getTest().getId(),
+                        new ResultPageData.NamedOption(row.getTest().getId(), row.getTest().getName()));
+            }
+
+            if (row.getTeam() != null && row.getTeam().getId() != null) {
+                teams.putIfAbsent(
+                        row.getTeam().getId(),
+                        new ResultPageData.NamedOption(row.getTeam().getId(), row.getTeam().getName()));
+            }
+
+            if (row.getBattery() != null && row.getBattery().getId() != null) {
+                batteries.putIfAbsent(
+                        row.getBattery().getId(),
+                        new ResultPageData.NamedOption(row.getBattery().getId(), row.getBattery().getName()));
+            }
+
+            if (row.getStatusCode() != null && !row.getStatusCode().isBlank()) {
+                statuses.putIfAbsent(
+                        row.getStatusCode(),
+                        new ResultPageData.StatusOption(row.getStatusCode(), row.getStatusLabel()));
+            }
+        }
+
+        return new ResultPageData.FilterOptions(
+                minDate,
+                maxDate,
+                new ArrayList<>(athletes.values()),
+                new ArrayList<>(tests.values()),
+                new ArrayList<>(teams.values()),
+                new ArrayList<>(batteries.values()),
+                new ArrayList<>(statuses.values()));
+    }
+
+    private ResultRowData.ValueSummary toValueSummary(ResultValue resultValue) {
+        String unitSymbol = resultValue.getResultType().getUnitMeasure() != null
+                ? resultValue.getResultType().getUnitMeasure().getSymbol()
+                : null;
+
+        return new ResultRowData.ValueSummary(
+                resultValue.getResultType().getId(),
+                resultValue.getResultType().getName(),
+                formatResultValue(resultValue.getResultType().getName(), resultValue.getValue(), unitSymbol),
+                unitSymbol);
+    }
+
+    private ResultRowData.IntervenantSummary toIntervenantSummary(UserAccount intervenant) {
+        if (intervenant == null) {
+            return null;
+        }
+
+        return new ResultRowData.IntervenantSummary(
+                intervenant.getId(),
+                intervenant.getFirstName(),
+                intervenant.getLastName(),
+                formatDisplayName(intervenant.getFirstName(), intervenant.getLastName()),
+                toRoleLabel(intervenant.getAccessLevel()));
+    }
+
+    private Battery resolveBattery(Result result) {
+        if (result.getAthlete() == null || result.getTest() == null) {
+            return null;
+        }
+
+        for (AthleteTeam athleteTeam : result.getAthlete().getAthleteTeams()) {
+            Team team = athleteTeam.getTeam();
+            if (team == null || team.getId() == null) {
+                continue;
+            }
+
+            List<Battery> batteries = batteryRepository.findByTeam_IdAndTests_Id(team.getId(), result.getTest().getId());
+            if (!batteries.isEmpty()) {
+                return batteries.get(0);
+            }
+        }
+
+        return null;
+    }
+
+    private Team resolvePrimaryTeam(Athlete athlete) {
+        if (athlete == null || athlete.getAthleteTeams().isEmpty()) {
+            return null;
+        }
+
+        AthleteTeam athleteTeam = athlete.getAthleteTeams().get(0);
+        return athleteTeam == null ? null : athleteTeam.getTeam();
+    }
+
+    private String buildResultValueSummary(List<ResultRowData.ValueSummary> values) {
+        return values.stream()
+                .map(ResultRowData.ValueSummary::getFormattedValue)
+                .filter(value -> value != null && !value.isBlank())
+                .reduce((first, second) -> first + " | " + second)
+                .orElse("");
+    }
+
+    private String formatResultValue(String resultTypeName, BigDecimal value, String unitSymbol) {
+        String formattedValue = formatDecimal(value);
+        String formattedUnit = unitSymbol == null || unitSymbol.isBlank() ? "" : " " + unitSymbol;
+        return resultTypeName + ": " + formattedValue + formattedUnit;
+    }
+
+    private String formatDecimal(BigDecimal value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.stripTrailingZeros().toPlainString();
+    }
+
+    private String formatDisplayName(String firstName, String lastName) {
+        String left = firstName == null ? "" : firstName.trim();
+        String right = lastName == null ? "" : lastName.trim();
+        return (left + " " + right).trim();
+    }
+
+    private String toStatusCode(String rawStatus) {
+        return ResultStatus.fromStatus(rawStatus).name();
+    }
+
+    private String toStatusLabel(String rawStatus) {
+        return ResultStatus.fromStatus(rawStatus).getStatus();
+    }
+
+    private String toRoleLabel(int accessLevel) {
+        return switch (accessLevel) {
+            case 1 -> "ADMIN";
+            case 2 -> "COACH";
+            case 3 -> "ATHLETE";
+            case 4 -> "KINE";
+            default -> "USER";
+        };
     }
 
     private boolean isMissing(String str) {

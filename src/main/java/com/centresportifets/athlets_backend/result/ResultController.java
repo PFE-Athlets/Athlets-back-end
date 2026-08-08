@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.result.dto.ResultPageData;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
@@ -21,8 +22,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @Tag(
-	name = "Result controller",
-	description = "Handles all actions related to attributing/filling test results")
+    name = "Result controller",
+    description = "Handles all actions related to attributing/filling test results")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/result")
@@ -56,5 +57,10 @@ public class ResultController {
     @GetMapping()
     public ResponseEntity<List<TestData>> getTestResults(Authentication auth) {
         return ResponseEntity.ok(resultService.getTestResults(auth));
+    }
+
+    @GetMapping("/page-data")
+    public ResponseEntity<ResultPageData> getResultPageData(Authentication auth) {
+        return ResponseEntity.ok(resultService.getResultPageData(auth));
     }
 }

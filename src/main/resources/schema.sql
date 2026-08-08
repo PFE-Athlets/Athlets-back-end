@@ -292,6 +292,7 @@ CREATE TABLE Result (
     id_result SERIAL PRIMARY KEY,
     id_test INT NOT NULL,
     id_athlete INT NOT NULL,
+    id_intervenant INT,
     proof VARCHAR(500),
     status VARCHAR(20) DEFAULT 'Assigned' NOT NULL,
     comment TEXT,
@@ -304,6 +305,10 @@ CREATE TABLE Result (
     CONSTRAINT fk_result_athlete
         FOREIGN KEY (id_athlete)
         REFERENCES Athlete(user_id),
+
+    CONSTRAINT fk_result_intervenant
+        FOREIGN KEY (id_intervenant)
+        REFERENCES User_Account(id),
 
     CONSTRAINT ck_result_status
         CHECK (
