@@ -2,7 +2,9 @@ package com.centresportifets.athlets_backend.result;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,5 +58,15 @@ public class ResultController {
     @GetMapping()
     public ResponseEntity<List<TestData>> getTestResults(Authentication auth) {
         return ResponseEntity.ok(resultService.getTestResults(auth));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportTestResults(Authentication auth) {
+        byte[] workbook = resultService.exportTestResults(auth);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=resultats.xlsx")
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(workbook);
     }
 }
