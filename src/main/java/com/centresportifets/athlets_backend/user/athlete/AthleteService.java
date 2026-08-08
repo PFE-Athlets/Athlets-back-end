@@ -54,7 +54,7 @@ public class AthleteService {
     @Transactional
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public void createAthlete(AthleteCreateRequest request, Authentication auth) {
-        if (!authService.canManageTeams(auth, request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList())) {
+        if (!authService.canAccessTeams(auth, request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList())) {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
 
@@ -114,7 +114,7 @@ public class AthleteService {
         }
 
         List<Long> teamIds = request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList();
-        if (!authService.canManageTeams(auth, teamIds)) {
+        if (!authService.canAccessTeams(auth, teamIds)) {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
 

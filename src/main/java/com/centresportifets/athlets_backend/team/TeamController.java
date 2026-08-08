@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.centresportifets.athlets_backend.team.dto.AthletePreviewDisplay;
 import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamCreationRequest;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,11 +41,15 @@ public class TeamController {
     public ResponseEntity<List<SubcoachDisplay>> getSubcoaches(@PathVariable Long teamId, Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getSubcoaches(teamId, auth));
     }
-
     
     @GetMapping("/kinesiologists/{teamId}")
     public ResponseEntity<List<KineDisplay>> getKinesiologistsByTeamId(@PathVariable Long teamId, Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(teamService.getKinesiologistsByTeamId(teamId, auth));
+    }
+
+    @GetMapping("/athletes/preview/{teamId}")
+    public ResponseEntity<List<AthletePreviewDisplay>> getAthletesPreview(@PathVariable Long teamId, Authentication auth) {
+        return ResponseEntity.status(HttpStatus.OK).body(teamService.getAthletesPreview(teamId, auth));
     }
 
     @PostMapping()
