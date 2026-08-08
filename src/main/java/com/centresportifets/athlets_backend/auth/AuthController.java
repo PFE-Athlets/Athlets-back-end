@@ -17,16 +17,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.centresportifets.athlets_backend.auth.dto.AuthCredentials;
 import com.centresportifets.athlets_backend.auth.dto.AuthUser;
 import com.centresportifets.athlets_backend.user.UserAccount;
 import com.centresportifets.athlets_backend.auth.dto.PasswordResetRequest;
 import com.centresportifets.athlets_backend.auth.dto.ResetPasswordRequest;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Authentication controller", description = "Handles basic user authentication flow and account creation")
