@@ -232,6 +232,7 @@ public class TeamService {
                 positions.add(info);
             });
             disciplinesAndPositions.setPositions(positions);
+            athletePreview.setDisciplinesAndPositions(disciplinesAndPositions);
 
             athletePreviews.add(athletePreview);
         });
