@@ -1,5 +1,7 @@
 package com.centresportifets.athlets_backend.result;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,6 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -152,6 +157,104 @@ public class ResultService {
                 .toList();
 
         return new ResultPageData(rows, buildFilterOptions(rows));
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportResultsWorkbook(
+            Authentication auth,
+            String startDate,
+            String endDate,
+            Long athleteId,
+            Long testId,
+            Long teamId,
+            String statusCode,
+            Long batteryId) {
+        List<ResultRowData> rows = filterRows(
+                getVisibleResults(auth).stream()
+                        .map(this::toResultRow)
+                        .toList(),
+                startDate,
+                endDate,
+                athleteId,
+                testId,
+                teamId,
+                statusCode,
+                batteryId);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Résultats");
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {
+                    "Date de saisie",
+                    "Athlète",
+                    "Test",
+                    "Batterie de tests",
+                    "Équipe",
+                    "Intervenant",
+                    "Statut",
+                    "Résumé"
+            };
+
+            for (int index = 0; index < headers.length; index++) {
+                headerRow.createCell(index).setCellValue(headers[index]);
+            }
+
+            for (int index = 0; index < rows.size(); index++) {
+                ResultRowData row = rows.get(index);
+                Row excelRow = sheet.createRow(index + 1);
+
+                excelRow.createCell(0).setCellValue(row.getTestDate() != null ? row.getTestDate().toString() : "");
+                excelRow.createCell(1).setCellValue(row.getAthlete() != null ? row.getAthlete().getDisplayName() : "");
+                excelRow.createCell(2).setCellValue(row.getTest() != null ? row.getTest().getName() : "");
+                excelRow.createCell(3).setCellValue(row.getBattery() != null ? row.getBattery().getName() : "");
+                excelRow.createCell(4).setCellValue(row.getTeam() != null ? row.getTeam().getName() : "");
+                excelRow.createCell(5).setCellValue(row.getIntervenant() != null ? row.getIntervenant().getDisplayName() : "");
+                excelRow.createCell(6).setCellValue(row.getStatusLabel() != null ? row.getStatusLabel() : "");
+                excelRow.createCell(7).setCellValue(row.getResultValueSummary() != null ? row.getResultValueSummary() : "");
+            }
+
+            for (int index = 0; index < headers.length; index++) {
+                sheet.autoSizeColumn(index);
+            }
+
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Impossible de générer le fichier Excel des résultats.", exception);
+        }
+    }
+
+    private List<ResultRowData> filterRows(
+            List<ResultRowData> rows,
+            String startDate,
+            String endDate,
+            Long athleteId,
+            Long testId,
+            Long teamId,
+            String statusCode,
+            Long batteryId) {
+        LocalDate parsedStartDate = parseDate(startDate);
+        LocalDate parsedEndDate = parseDate(endDate);
+        String normalizedStatusCode = statusCode == null ? null : statusCode.trim().toUpperCase();
+
+        return rows.stream()
+                .filter(row -> parsedStartDate == null || (row.getTestDate() != null && !row.getTestDate().isBefore(parsedStartDate)))
+                .filter(row -> parsedEndDate == null || (row.getTestDate() != null && !row.getTestDate().isAfter(parsedEndDate)))
+                .filter(row -> athleteId == null || (row.getAthlete() != null && athleteId.equals(row.getAthlete().getId())))
+                .filter(row -> testId == null || (row.getTest() != null && testId.equals(row.getTest().getId())))
+                .filter(row -> teamId == null || (row.getTeam() != null && teamId.equals(row.getTeam().getId())))
+                .filter(row -> batteryId == null || (row.getBattery() != null && batteryId.equals(row.getBattery().getId())))
+                .filter(row -> normalizedStatusCode == null || normalizedStatusCode.isBlank() || normalizedStatusCode.equalsIgnoreCase(row.getStatusCode()))
+                .toList();
+    }
+
+    private LocalDate parseDate(String rawDate) {
+        if (rawDate == null || rawDate.isBlank()) {
+            return null;
+        }
+
+        return LocalDate.parse(rawDate);
     }
 
     private List<Result> getVisibleResults(Authentication auth) {

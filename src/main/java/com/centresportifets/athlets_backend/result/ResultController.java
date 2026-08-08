@@ -2,7 +2,9 @@ package com.centresportifets.athlets_backend.result;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -62,5 +65,21 @@ public class ResultController {
     @GetMapping("/page-data")
     public ResponseEntity<ResultPageData> getResultPageData(Authentication auth) {
         return ResponseEntity.ok(resultService.getResultPageData(auth));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportResults(
+            Authentication auth,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Long athleteId,
+            @RequestParam(required = false) Long testId,
+            @RequestParam(required = false) Long teamId,
+            @RequestParam(required = false) String statusCode,
+            @RequestParam(required = false) Long batteryId) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=resultats.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(resultService.exportResultsWorkbook(auth, startDate, endDate, athleteId, testId, teamId, statusCode, batteryId));
     }
 }
