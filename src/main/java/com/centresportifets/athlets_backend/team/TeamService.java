@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
 import com.centresportifets.athlets_backend.sport.SportRepository;
+import com.centresportifets.athlets_backend.sport.dto.DisciplinesAndPositions;
+import com.centresportifets.athlets_backend.sport.dto.SportExtraInfo;
 import com.centresportifets.athlets_backend.team.dto.AthletePreviewDisplay;
 import com.centresportifets.athlets_backend.team.dto.SubcoachDisplay;
 import com.centresportifets.athlets_backend.team.dto.TeamCreationRequest;
@@ -208,11 +210,28 @@ public class TeamService {
             athletePreview.setAthleteId(athlete.getId());
             athletePreview.setAthleteName(athlete.getFirstName() + " " + athlete.getLastName());
 
-            // DisciplinesAndPositions disciplinesAndPositions = new DisciplinesAndPositions();
-            // athleteTeamDisciplineRepository.findByAthlete_IdAndTeam_Id(athlete.getId(), teamId)
-            //     .stream().map(atd -> atd.getDiscipline())
-            //     .forEach(discipline -> disciplinesAndPositions.getDisciplines().add(discipline));
-            // disciplinesAndPositions.setPositions(athleteTeamPositionRepository.findByAthlete_IdAndTeam_Id(athlete.getId(), teamId).stream().map(atp -> atp.getPosition()).toList());
+            DisciplinesAndPositions disciplinesAndPositions = new DisciplinesAndPositions();
+            List<SportExtraInfo> disciplines = new ArrayList<>();
+            athleteTeamDisciplineRepository.findByAthlete_IdAndTeam_Id(athlete.getId(), teamId)
+            .stream().map(atd -> atd.getDiscipline())
+            .forEach(discipline -> {
+                SportExtraInfo info = new SportExtraInfo();
+                info.setId(discipline.getId());
+                info.setName(discipline.getName());
+                disciplines.add(info);
+            });
+            disciplinesAndPositions.setDisciplines(disciplines);
+
+            List<SportExtraInfo> positions = new ArrayList<>();
+            athleteTeamPositionRepository.findByAthlete_IdAndTeam_Id(athlete.getId(), teamId)
+            .stream().map(atp -> atp.getPosition())
+            .forEach(position -> {
+                SportExtraInfo info = new SportExtraInfo();
+                info.setId(position.getId());
+                info.setName(position.getName());
+                positions.add(info);
+            });
+            disciplinesAndPositions.setPositions(positions);
 
             athletePreviews.add(athletePreview);
         });
