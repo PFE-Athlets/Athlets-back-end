@@ -20,4 +20,5 @@ public interface AthleteTeamDisciplineRepository extends JpaRepository<AthleteTe
     void createIfNotExists(@Param("athleteId") Long athleteId, @Param("disciplineId") Long disciplineId, @Param("teamId") Long teamId);
 
     AthleteTeamDiscipline findByAthlete_IdAndDiscipline_IdAndTeam_Id(Long athleteId, Long disciplineId, Long teamId);
+    List<AthleteTeamDiscipline> findByAthlete_IdAndTeam_Id(Long athleteId, Long teamId);
 }

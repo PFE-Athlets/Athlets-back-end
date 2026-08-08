@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import com.centresportifets.athlets_backend.email.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.user.UserAccount;
 import com.centresportifets.athlets_backend.user.UserAccountRepository;
 import com.centresportifets.athlets_backend.user.UserStatus;
@@ -55,6 +56,7 @@ public class AuthService {
 	private final AccountTokenRepository accountTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityContextLogoutHandler logoutHandler;
+	private final AthleteTeamRepository athleteTeamRepository;
 	private final CoachRepository coachRepository;
 	private final KineRepository kineRepository;
 	private final KineTeamRepository kineTeamRepository;
@@ -377,34 +379,29 @@ public class AuthService {
 		return checkIfUserIsAuthenticatedUser(user.getId(), auth);
 	}
 
-	public boolean canManageTeams(Authentication auth, List<Long> teamIds) {
+	public boolean canAccessTeams(Authentication auth, List<Long> teamIds) {
 		if (teamIds == null || teamIds.isEmpty()) {
 			throw new IllegalArgumentException("Team IDs list cannot be null or empty.");
 		}
 
-		if (hasPermission(auth, "ADMIN")) {
-			return true;
+		switch (getAuthenticatedUserType(auth)) {
+			case ADMIN:
+				return true;
+			case COACH:
+				Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
+				if (teamIds.size() > 1) {
+					throw new IllegalArgumentException("Coaches can only manage one team at a time.");
+				}
+				return teamIds.get(0).equals(coach.getTeam().getId());
+			case KINE:
+				Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
+				return teamIds.stream().allMatch(teamId -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId));
+			case ATHLETE:
+				Athlete athlete = athleteRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Athlete profile not found"));
+				return teamIds.stream().allMatch(teamId -> athleteTeamRepository.existsByAthleteIdAndTeamId(athlete.getId(), teamId));
+			default:
+				return false;
 		}
-
-		if (hasPermission(auth, "COACH")) {
-			Coach coach = coachRepository.findByUsername(auth.getName())
-					.orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
-
-			if (teamIds.size() > 1) {
-				throw new IllegalArgumentException("Coaches can only manage one team at a time.");
-			}
-
-			return teamIds.get(0).equals(coach.getTeam().getId());
-		}
-
-		if (hasPermission(auth, "KINE")) {
-			Kine kine = kineRepository.findByUsername(auth.getName())
-					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
-
-			return teamIds.stream().allMatch(teamId -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId));
-		}
-
-		return false;
 	}
 
 	/**

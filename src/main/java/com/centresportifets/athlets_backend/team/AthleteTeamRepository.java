@@ -10,7 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface AthleteTeamRepository extends JpaRepository<AthleteTeam, AthleteTeamId> {
     int countByTeamId(Long teamId);
-
+    boolean existsByAthleteIdAndTeamId(Long athleteId, Long teamId);
+    List<AthleteTeam> findByAthleteId(Long athleteId);
+    List<AthleteTeam> findByTeamId(Long teamId);
+    
     @Transactional
     @Modifying
     @Query("DELETE FROM AthleteTeam at WHERE at.athlete.id = :athleteId AND at.team.id NOT IN :teamIds")
