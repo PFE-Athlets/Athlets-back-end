@@ -1,5 +1,6 @@
 package com.centresportifets.athlets_backend.user.athlete;
 
+import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.dto.AthleteCreateRequest;
 
@@ -12,7 +13,7 @@ public class AthleteMapper {
         athlete.setPhone(request.getPhone());
         athlete.setUsername(request.getUsername());
         athlete.setPassword(password);
-        athlete.setAccountStatus(request.getAccountStatus());
+        athlete.setAccountStatus(UserStatus.PENDING.getStatus());
         athlete.setBirthDate(request.getBirthDate());
         athlete.setGender(request.getGender());
         athlete.setHeightMeters(request.getHeightMeters());

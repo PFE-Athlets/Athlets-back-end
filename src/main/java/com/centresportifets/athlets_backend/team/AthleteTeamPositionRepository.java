@@ -20,4 +20,5 @@ public interface AthleteTeamPositionRepository extends JpaRepository<AthleteTeam
     void createIfNotExists(@Param("athleteId") Long athleteId, @Param("positionId") Long positionId, @Param("teamId") Long teamId);
     
     AthleteTeamPosition findByAthlete_IdAndPosition_IdAndTeam_Id(Long athleteId, Long positionId, Long teamId);
+    List<AthleteTeamPosition> findByAthlete_IdAndTeam_Id(Long athleteId, Long teamId);
 }

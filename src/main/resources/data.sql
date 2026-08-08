@@ -141,6 +141,7 @@ INSERT INTO Athlete (user_id, access_level, birth_date, gender, height_meters, w
 
 INSERT INTO Athlete_Team (athlete_id, team_id) VALUES 
 ((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
+((SELECT id FROM User_Account WHERE username = 'trackUser1'), (SELECT id FROM Team WHERE name = 'Piranhas Cross-Country')),
 ((SELECT id FROM User_Account WHERE username = 'trackUser2'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme')),
 ((SELECT id FROM User_Account WHERE username = 'trackUser3'), (SELECT id FROM Team WHERE name = 'Piranhas Athlétisme'));
 

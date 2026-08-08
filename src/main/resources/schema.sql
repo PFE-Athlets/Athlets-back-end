@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS Coach CASCADE;
 DROP TABLE IF EXISTS Kine CASCADE;
 DROP TABLE IF EXISTS Team CASCADE;
 DROP TABLE IF EXISTS Administrator CASCADE;
+DROP TABLE IF EXISTS Account_Token CASCADE;
 DROP TABLE IF EXISTS User_Account CASCADE;
 DROP TABLE IF EXISTS Group_Table CASCADE;
 DROP TABLE IF EXISTS Discipline CASCADE;
@@ -72,12 +73,24 @@ CREATE TABLE User_Account (
     phone VARCHAR(20),
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    account_status VARCHAR(10) NOT NULL DEFAULT 'Active',
+    account_status VARCHAR(15) NOT NULL DEFAULT 'Active',
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
     access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete, 4: Kinesiologist
     CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','Pending')),
     CONSTRAINT chk_access_level CHECK (access_level IN (1, 2, 3, 4)),
     CONSTRAINT uq_user_and_role UNIQUE (id, access_level)
+);
+
+CREATE TABLE Account_Token (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_account_token_user FOREIGN KEY (user_id) REFERENCES User_Account(id) ON DELETE CASCADE,
+    CONSTRAINT chk_account_token_type CHECK (type IN ('ACTIVATION', 'PASSWORD_RESET'))
 );
 
 CREATE TABLE Administrator (

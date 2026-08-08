@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +29,7 @@ public class SportController {
     }
 
     @GetMapping("/disciplines-positions/{sportId}")
-    public ResponseEntity<DisciplinesAndPositions> getDisciplinesAndPositions(Long sportId) {
+    public ResponseEntity<DisciplinesAndPositions> getDisciplinesAndPositions(@PathVariable Long sportId) {
         return ResponseEntity.status(HttpStatus.OK).body(sportService.getDisciplinesAndPositions(sportId));
     }
 }
