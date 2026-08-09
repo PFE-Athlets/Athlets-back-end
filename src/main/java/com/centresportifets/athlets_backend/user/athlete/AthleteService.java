@@ -103,7 +103,7 @@ public class AthleteService {
         }
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<AthleteData> getAthletesForTeam(long teamId){
         return athleteRepository.findByAthleteTeamsTeamId(teamId).stream().map((athlete) -> new AthleteData(athlete)).toList();
     }
