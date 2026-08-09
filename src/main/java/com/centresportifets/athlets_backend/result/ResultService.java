@@ -42,6 +42,7 @@ import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +58,7 @@ public class ResultService {
     private final ResultTypeRepository resultTypeRepository;
     private final ResultValueRepository resultValueRepository;
     private final BatteryRepository batteryRepository;
+    private final UserAccountRepository userAccountRepository;
 
     private static final Logger log = LoggerFactory.getLogger(ResultService.class);
 
@@ -76,31 +78,90 @@ public class ResultService {
     }
 
     @Transactional
-    public void submitAthleteResult(TestResultSubmission resultSubmission, Authentication auth) {
-        Result result = resultRepository.findById(resultSubmission.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
+    public void submitAthleteResult(
+            TestResultSubmission resultSubmission,
+            Authentication auth) {
 
-        if (!authService.isAthleteOwner(auth, result.getAthlete())) {
-            throw new AccessDeniedException("You are not authorized to submit this result.");
+        Result result = resultRepository.findById(resultSubmission.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Physical test result not found"
+                ));
+
+        UserType userType = authService.getAuthenticatedUserType(auth);
+
+        switch (userType) {
+            case ATHLETE -> {
+                if (!authService.isAthleteOwner(auth, result.getAthlete())) {
+                    throw new AccessDeniedException(
+                            "You are not authorized to submit this result."
+                    );
+                }
+
+                result.setIntervenant(null);
+                result.setStatus(ResultStatus.PENDING.getStatus());
+            }
+
+            case ADMIN, COACH, KINE -> {
+                if (!authService.canManageAthletes(
+                        auth,
+                        List.of(result.getAthlete().getUsername())
+                )) {
+                    throw new AccessDeniedException(
+                            "You are not authorized to submit this result."
+                    );
+                }
+
+                UserAccount intervenant = userAccountRepository
+                        .findByUsername(auth.getName())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Authenticated user not found"
+                        ));
+
+                result.setIntervenant(intervenant);
+                result.setStatus(ResultStatus.APPROVED.getStatus());
+            }
+
+            default -> throw new AccessDeniedException(
+                    "You are not authorized to submit results."
+            );
         }
 
         if (result.getTest().isProofRequired() && isMissing(resultSubmission.getProof())) {
-            throw new IllegalArgumentException("Proof is required for this test");
+            throw new IllegalArgumentException(
+                    "Proof is required for this test"
+            );
         }
 
-        if (resultSubmission.getResultValues() == null || resultSubmission.getResultValues().isEmpty()) {
-            throw new IllegalArgumentException("At least one result value is required for this test");
+        if (resultSubmission.getResultValues() == null
+                || resultSubmission.getResultValues().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "At least one result value is required for this test"
+            );
         }
 
         resultValueRepository.deleteByResultId(result.getId());
 
         for (ResultValueSubmissionDTO valueDTO : resultSubmission.getResultValues()) {
             if (valueDTO.getValue() == null) {
-                throw new IllegalArgumentException("Result value cannot be null for result type ID: " + valueDTO.getResultTypeId());
+                throw new IllegalArgumentException(
+                        "Result value cannot be null for result type ID: "
+                                + valueDTO.getResultTypeId()
+                );
             }
 
-            ResultType resultType = resultTypeRepository.findById(valueDTO.getResultTypeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Result type not found with ID: " + valueDTO.getResultTypeId()));
+            ResultType resultType = resultTypeRepository
+                    .findById(valueDTO.getResultTypeId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Result type not found with ID: "
+                                    + valueDTO.getResultTypeId()
+                    ));
+
+            if (resultType.getTest() == null
+                    || !resultType.getTest().getId().equals(result.getTest().getId())) {
+                throw new IllegalArgumentException(
+                        "Result type does not belong to this physical test"
+                );
+            }
 
             ResultValue resultValue = new ResultValue();
             resultValue.setResult(result);
@@ -113,7 +174,6 @@ public class ResultService {
         result.setProof(resultSubmission.getProof());
         result.setCommentText(resultSubmission.getComment());
         result.setTestDate(LocalDate.now());
-        result.setStatus(ResultStatus.PENDING.getStatus());
 
         resultRepository.save(result);
     }
@@ -140,6 +200,51 @@ public class ResultService {
         String status = approved ? ResultStatus.APPROVED.getStatus() : ResultStatus.REJECTED.getStatus();
         result.setStatus(status);
         resultRepository.save(result);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResultRowData> getTeamResults(
+            Long teamId,
+            Authentication auth) {
+
+        if (!authService.canAccessTeams(
+                auth,
+                List.of(teamId)
+        )) {
+            throw new AccessDeniedException(
+                    "You are not authorized to access results for this team."
+            );
+        }
+
+        List<Athlete> athletes =
+                athleteRepository.findByAthleteTeamsTeamId(
+                        teamId
+                );
+
+        if (athletes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> athleteIds = athletes.stream()
+                .map(Athlete::getId)
+                .toList();
+
+        List<Result> results =
+                resultRepository.findByAthleteIdIn(
+                        athleteIds
+                );
+
+        return results.stream()
+                .filter(result ->
+                        !batteryRepository
+                                .findByTeam_IdAndTests_Id(
+                                        teamId,
+                                        result.getTest().getId()
+                                )
+                                .isEmpty()
+                )
+                .map(this::toResultRow)
+                .toList();
     }
 
     @Transactional(readOnly = true)

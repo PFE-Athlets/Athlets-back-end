@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.centresportifets.athlets_backend.result.dto.ResultPageData;
+import com.centresportifets.athlets_backend.result.dto.ResultRowData;
 import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 import com.centresportifets.athlets_backend.result.dto.TestData;
 import com.centresportifets.athlets_backend.result.dto.TestResultSubmission;
@@ -55,6 +56,19 @@ public class ResultController {
     public ResponseEntity<Void> approveResult(@PathVariable Long testResultId, @PathVariable boolean approved) {
         resultService.approveAthleteResult(testResultId, approved);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/team/{teamId}")
+    public ResponseEntity<List<ResultRowData>> getTeamResults(
+            @PathVariable Long teamId,
+            Authentication auth) {
+
+        return ResponseEntity.ok(
+                resultService.getTeamResults(
+                        teamId,
+                        auth
+                )
+        );
     }
 
     @GetMapping()
