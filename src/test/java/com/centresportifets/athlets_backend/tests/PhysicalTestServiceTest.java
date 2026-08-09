@@ -38,6 +38,7 @@ import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.result.ResultService;
 
 @ExtendWith(MockitoExtension.class)
 class PhysicalTestServiceTest {
@@ -80,6 +81,9 @@ class PhysicalTestServiceTest {
 
     private PhysicalTestService physicalTestService;
 
+    @Mock
+    private ResultService resultService;
+
     @BeforeEach
     void setUp() {
         // Constructeur complet incluant authService, coachRepository et athleteRepository
@@ -94,7 +98,8 @@ class PhysicalTestServiceTest {
                 authService,
                 coachRepository,
                 athleteRepository,
-                teamRepository
+                teamRepository,
+                resultService
         );
     }
 
