@@ -58,6 +58,16 @@ public class ResultController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{resultId}")
+    public ResponseEntity<ResultRowData> getResultById(
+            @PathVariable Long resultId,
+            Authentication auth) {
+
+        return ResponseEntity.ok(
+                resultService.getResultById(resultId, auth)
+        );
+    }
+
     @GetMapping("/team/{teamId}")
     public ResponseEntity<List<ResultRowData>> getTeamResults(
             @PathVariable Long teamId,

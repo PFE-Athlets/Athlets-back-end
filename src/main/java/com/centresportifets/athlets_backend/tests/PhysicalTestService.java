@@ -70,12 +70,13 @@ public class PhysicalTestService {
 
         switch(userType) {
             case ADMIN -> tests = physicalTestRepository.findAll();
-            case COACH -> {
+            case COACH -> tests = physicalTestRepository.findAll();
+            /**case COACH -> {
                 Coach coach = coachRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
                 Long teamId = coach.getTeam().getId();
                 tests = physicalTestRepository.findAllByBatterysTeamId(teamId);
-            }
+            }*/
             case ATHLETE -> {
                 Athlete athlete = athleteRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));

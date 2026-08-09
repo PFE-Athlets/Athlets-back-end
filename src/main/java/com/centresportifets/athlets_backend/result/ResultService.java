@@ -203,6 +203,61 @@ public class ResultService {
     }
 
     @Transactional(readOnly = true)
+    public ResultRowData getResultById(Long resultId, Authentication auth) {
+        Result result = resultRepository.findById(resultId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Result not found with ID: " + resultId
+                ));
+
+        UserType userType = authService.getAuthenticatedUserType(auth);
+
+        switch (userType) {
+            case ADMIN -> {
+                return toResultRow(result);
+            }
+
+            case ATHLETE -> {
+                if (!authService.isAthleteOwner(auth, result.getAthlete())) {
+                    throw new AccessDeniedException(
+                            "You are not authorized to access this result."
+                    );
+                }
+
+                return toResultRow(result);
+            }
+
+            case COACH, KINE -> {
+                Battery battery = resolveBattery(result);
+
+                Team team = battery != null
+                        ? battery.getTeam()
+                        : resolvePrimaryTeam(result.getAthlete());
+
+                if (team == null || team.getId() == null) {
+                    throw new AccessDeniedException(
+                            "No accessible team is associated with this result."
+                    );
+                }
+
+                if (!authService.canAccessTeams(
+                        auth,
+                        List.of(team.getId())
+                )) {
+                    throw new AccessDeniedException(
+                            "You are not authorized to access this result."
+                    );
+                }
+
+                return toResultRow(result);
+            }
+
+            default -> throw new AccessDeniedException(
+                    "You are not authorized to access this result."
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<ResultRowData> getTeamResults(
             Long teamId,
             Authentication auth) {
