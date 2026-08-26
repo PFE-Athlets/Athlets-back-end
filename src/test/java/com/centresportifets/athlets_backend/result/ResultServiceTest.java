@@ -11,7 +11,9 @@ import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.tests.ResultType;
 import com.centresportifets.athlets_backend.tests.ResultTypeRepository;
 import com.centresportifets.athlets_backend.tests.UnitMeasure;
+import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.user.UserType;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.kine.Kine;
@@ -56,6 +58,10 @@ class ResultServiceTest {
     @Mock
     private ResultValueRepository resultValueRepository;
     @Mock
+    private BatteryRepository batteryRepository;
+    @Mock
+    private UserAccountRepository userAccountRepository;
+    @Mock
     private Authentication authentication;
 
     private ResultService resultService;
@@ -71,7 +77,9 @@ class ResultServiceTest {
                 physicalTestRepository,
                 resultRepository,
                 resultTypeRepository,
-                resultValueRepository);
+                resultValueRepository,
+                batteryRepository,
+                userAccountRepository);
     }
 
     @Test
@@ -170,3 +178,4 @@ class ResultServiceTest {
         return resultValue;
     }
 }
+

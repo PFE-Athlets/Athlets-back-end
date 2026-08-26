@@ -7,11 +7,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +36,13 @@ import com.centresportifets.athlets_backend.team.AthleteTeam;
 import com.centresportifets.athlets_backend.team.Team;
 import com.centresportifets.athlets_backend.tests.PhysicalTest;
 import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
+import com.centresportifets.athlets_backend.tests.PhysicalTestRepository;
 import com.centresportifets.athlets_backend.tests.ResultType;
 import com.centresportifets.athlets_backend.tests.ResultTypeRepository;
 import com.centresportifets.athlets_backend.tests.battery.Battery;
 import com.centresportifets.athlets_backend.tests.battery.BatteryRepository;
 import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 import com.centresportifets.athlets_backend.user.UserType;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
@@ -45,27 +51,6 @@ import com.centresportifets.athlets_backend.user.coach.CoachRepository;
 import com.centresportifets.athlets_backend.user.kine.Kine;
 import com.centresportifets.athlets_backend.user.kine.KineRepository;
 import com.centresportifets.athlets_backend.user.kine.KineTeamRepository;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.centresportifets.athlets_backend.user.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -352,9 +337,11 @@ public class ResultService {
     private List<Result> getAccessibleResults(Authentication auth) {
         return switch (authService.getAuthenticatedUserType(auth)) {
             case ADMIN -> resultRepository.findAll();
-            case COACH -> getCoachAccessibleResults(auth.getName());
+            case COACH -> getCoachTeamResults(auth.getName());
             case KINE -> getKineAccessibleResults(auth.getName());
-        return getVisibleResults(auth).stream().map(TestData::new).toList();
+            case ATHLETE -> resultRepository.findByAthleteUsername(auth.getName());
+            default -> Collections.emptyList();
+        };
     }
 
     @Transactional(readOnly = true)
@@ -471,11 +458,12 @@ public class ResultService {
         return switch (currentType) {
             case ADMIN -> resultRepository.findAll();
             case COACH -> getCoachTeamResults(auth.getName());
-            default -> resultRepository.findByAthleteUsername(auth.getName());
+            case KINE -> getKineAccessibleResults(auth.getName());
+            case ATHLETE -> resultRepository.findByAthleteUsername(auth.getName());
+            default -> Collections.emptyList();
         };
     }
 
-    private List<Result> getCoachAccessibleResults(String coachUsername) {
     private List<Result> getCoachTeamResults(String coachUsername) {
         Coach coach = coachRepository.findByUsername(coachUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
@@ -608,6 +596,8 @@ public class ResultService {
         for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
             sheet.autoSizeColumn(columnIndex);
         }
+    }
+
     private ResultRowData toResultRow(Result result) {
         Battery battery = resolveBattery(result);
         Team team = battery != null ? battery.getTeam() : resolvePrimaryTeam(result.getAthlete());
@@ -807,3 +797,7 @@ public class ResultService {
         return str == null || str.isBlank();
     }
 }
+
+
+
+

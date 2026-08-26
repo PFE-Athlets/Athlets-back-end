@@ -94,12 +94,14 @@ public class ResultController {
                 .contentType(MediaType.parseMediaType(
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(workbook);
+    }
+
     @GetMapping("/page-data")
     public ResponseEntity<ResultPageData> getResultPageData(Authentication auth) {
         return ResponseEntity.ok(resultService.getResultPageData(auth));
     }
 
-    @GetMapping("/export")
+    @GetMapping("/export/filtered")
     public ResponseEntity<byte[]> exportResults(
             Authentication auth,
             @RequestParam(required = false) String startDate,
@@ -115,3 +117,5 @@ public class ResultController {
                 .body(resultService.exportResultsWorkbook(auth, startDate, endDate, athleteId, testId, teamId, statusCode, batteryId));
     }
 }
+
+
