@@ -16,7 +16,7 @@ public interface AthleteTeamPositionRepository extends JpaRepository<AthleteTeam
     
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO AthleteTeamPosition (athlete_id, position_id, team_id) VALUES (:athleteId, :positionId, :teamId) ON CONFLICT (athlete_id, position_id, team_id) DO NOTHING", nativeQuery = true)
+    @Query(value = "INSERT INTO athlete_team_position (athlete_id, position_id, team_id) VALUES (:athleteId, :positionId, :teamId) ON CONFLICT (athlete_id, position_id, team_id) DO NOTHING", nativeQuery = true)
     void createIfNotExists(@Param("athleteId") Long athleteId, @Param("positionId") Long positionId, @Param("teamId") Long teamId);
     
     AthleteTeamPosition findByAthlete_IdAndPosition_IdAndTeam_Id(Long athleteId, Long positionId, Long teamId);

@@ -1,6 +1,7 @@
 package com.centresportifets.athlets_backend.result;
 
 import com.centresportifets.athlets_backend.tests.PhysicalTest;
+import com.centresportifets.athlets_backend.user.UserAccount;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
 
 import jakarta.persistence.*;
@@ -28,6 +29,10 @@ public class Result {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_athlete", nullable = false)
     private Athlete athlete;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_intervenant")
+    private UserAccount intervenant;
 
     @Column(name = "proof", length = 500)
     private String proof;
