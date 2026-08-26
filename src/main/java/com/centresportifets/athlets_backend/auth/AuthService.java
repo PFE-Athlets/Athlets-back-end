@@ -28,6 +28,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import com.centresportifets.athlets_backend.email.EmailService;
 import org.springframework.beans.factory.annotation.Value;
+
+import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
+import com.centresportifets.athlets_backend.user.UserAccount;
+import com.centresportifets.athlets_backend.user.UserAccountRepository;
 import com.centresportifets.athlets_backend.team.AthleteTeamRepository;
 import com.centresportifets.athlets_backend.user.UserStatus;
 import com.centresportifets.athlets_backend.user.athlete.Athlete;
