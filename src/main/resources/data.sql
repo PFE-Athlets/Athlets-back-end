@@ -252,9 +252,10 @@ INSERT INTO Battery_Test (id_battery, id_test) VALUES
 -- ============================================================================
 -- 6. RESULTS & RESULT VALUES
 -- ============================================================================
-INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+INSERT INTO Result (id_test, id_athlete, id_intervenant, proof, status, comment, date_result) VALUES
 ((SELECT id_test FROM Tests WHERE test_name = '1RM Back Squat'),
  (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ (SELECT id FROM User_Account WHERE username = 'coach-athletics'),
  'https://proofs.etsmtl.ca/squat_trackuser1.mp4',
  'Accepted',
  'Excellente forme, valide.',
@@ -265,9 +266,10 @@ INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
  (SELECT id_result_type FROM Result_Type WHERE name = 'Poids maximal levé'),
  140.50);
 
-INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+INSERT INTO Result (id_test, id_athlete, id_intervenant, proof, status, comment, date_result) VALUES
 ((SELECT id_test FROM Tests WHERE test_name = 'Sprint 30m'),
  (SELECT id FROM User_Account WHERE username = 'trackUser1'),
+ (SELECT id FROM User_Account WHERE username = 'coach-athletics'),
  'https://proofs.etsmtl.ca/sprint_trackuser1.mp4',
  'Accepted',
  'Chrono validé par cellule photoélectrique.',
@@ -278,9 +280,10 @@ INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
  (SELECT id_result_type FROM Result_Type WHERE name = 'Temps total 30m'),
  4.15);
 
-INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+INSERT INTO Result (id_test, id_athlete, id_intervenant, proof, status, comment, date_result) VALUES
 ((SELECT id_test FROM Tests WHERE test_name = 'Test Léger-Boucher (Beep Test)'),
  (SELECT id FROM User_Account WHERE username = 'trackUser2'),
+ (SELECT id FROM User_Account WHERE username = 'coach-athletics'),
  NULL,
  'Pending approval',
  'En attente de validation du kinésiologue.',
@@ -294,10 +297,12 @@ INSERT INTO Result_Value (id_result, id_result_type, value) VALUES
  (SELECT id_result_type FROM Result_Type WHERE name = 'Fréquence cardiaque max'),
  188.00);
 
-INSERT INTO Result (id_test, id_athlete, proof, status, comment, date_result) VALUES
+INSERT INTO Result (id_test, id_athlete, id_intervenant, proof, status, comment, date_result) VALUES
 ((SELECT id_test FROM Tests WHERE test_name = 'Pro Agility 5-10-5'),
  (SELECT id FROM User_Account WHERE username = 'trackUser3'),
+ (SELECT id FROM User_Account WHERE username = 'coach-athletics'),
  NULL,
  'Assigned',
  'À réaliser la semaine prochaine.',
  '2026-05-20');
+

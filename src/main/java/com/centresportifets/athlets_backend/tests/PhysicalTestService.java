@@ -28,6 +28,8 @@ import com.centresportifets.athlets_backend.user.athlete.Athlete;
 import com.centresportifets.athlets_backend.user.athlete.AthleteRepository;
 import com.centresportifets.athlets_backend.user.coach.Coach;
 import com.centresportifets.athlets_backend.user.coach.CoachRepository;
+import com.centresportifets.athlets_backend.result.ResultService;
+import com.centresportifets.athlets_backend.result.dto.TestAssignmentRequest;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,7 @@ public class PhysicalTestService {
     private final CoachRepository coachRepository;
     private final AthleteRepository athleteRepository;
     private final TeamRepository teamRepository;
+    private final ResultService resultService;
 
     /**
      * Retrieves physical tests filtered according to the caller's role and team associations.
@@ -67,12 +70,13 @@ public class PhysicalTestService {
 
         switch(userType) {
             case ADMIN -> tests = physicalTestRepository.findAll();
-            case COACH -> {
+            case COACH -> tests = physicalTestRepository.findAll();
+            /**case COACH -> {
                 Coach coach = coachRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
                 Long teamId = coach.getTeam().getId();
                 tests = physicalTestRepository.findAllByBatterysTeamId(teamId);
-            }
+            }*/
             case ATHLETE -> {
                 Athlete athlete = athleteRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));
@@ -156,20 +160,60 @@ public class PhysicalTestService {
      *
      * @param request payload containing battery metadata and the list of physical test IDs to group
      */
+    @Transactional
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
     public void createBattery(BatteryCreateRequest request) {
         Battery newBattery = new Battery();
-        Team team = teamRepository.findById((long)request.teamId())
-                .orElseThrow(() -> new IllegalArgumentException("Team not found: " + request.teamId()));
+
+        Team team = teamRepository.findById((long) request.teamId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Team not found: " + request.teamId()
+                ));
 
         newBattery.setName(request.name());
         newBattery.setStatus(request.status());
         newBattery.setTeam(team);
 
-        List<PhysicalTest> physicalTests = physicalTestRepository.findAllById(request.physicalTestIds());
-        newBattery.setTests(new ArrayList<>(physicalTests));
+        List<PhysicalTest> physicalTests =
+                physicalTestRepository.findAllById(
+                        request.physicalTestIds()
+                );
+
+        newBattery.setTests(
+                new ArrayList<>(physicalTests)
+        );
 
         batteryRepository.save(newBattery);
+
+        List<Athlete> athletes =
+                athleteRepository.findByAthleteTeamsTeamId(
+                        team.getId()
+                );
+
+        if (athletes.isEmpty() || physicalTests.isEmpty()) {
+            return;
+        }
+
+        List<String> usernames = athletes.stream()
+                .map(Athlete::getUsername)
+                .toList();
+
+        for (PhysicalTest physicalTest : physicalTests) {
+            TestAssignmentRequest assignmentRequest =
+                    new TestAssignmentRequest();
+
+            assignmentRequest.setPhysicalTestId(
+                    physicalTest.getId()
+            );
+
+            assignmentRequest.setUsernames(
+                    usernames
+            );
+
+            resultService.assignTest(
+                    assignmentRequest
+            );
+        }
     }
 
     /**
