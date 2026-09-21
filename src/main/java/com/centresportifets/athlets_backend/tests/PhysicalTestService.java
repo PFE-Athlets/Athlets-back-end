@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,13 +72,10 @@ public class PhysicalTestService {
 
         switch(userType) {
             case ADMIN -> tests = physicalTestRepository.findAll();
-            case COACH -> tests = physicalTestRepository.findAll();
-            /**case COACH -> {
-                Coach coach = coachRepository.findByUsername(auth.getName())
-                        .orElseThrow(() -> new EntityNotFoundException("Profil coach non trouvé"));
-                Long teamId = coach.getTeam().getId();
-                tests = physicalTestRepository.findAllByBatterysTeamId(teamId);
-            }*/
+            case COACH, KINE -> {
+                List<Long> teamIds = authService.accessibleTeamIds(auth);
+                tests = teamIds.isEmpty() ? List.of() : physicalTestRepository.findAll();
+            }
             case ATHLETE -> {
                 Athlete athlete = athleteRepository.findByUsername(auth.getName())
                         .orElseThrow(() -> new EntityNotFoundException("Profil athlète non trouvé"));
@@ -170,6 +169,7 @@ public class PhysicalTestService {
                         "Team not found: " + request.teamId()
                 ));
 
+        requireTeamAccess(team.getId());
         newBattery.setName(request.name());
         newBattery.setStatus(request.status());
         newBattery.setTeam(team);
@@ -222,9 +222,12 @@ public class PhysicalTestService {
      *
      * @return a list of {@link BatteryDTO} objects representing all batterys in the system
      */
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') || @authService.hasPermission(authentication, 'COACH') || @authService.hasPermission(authentication, 'KINE')")
     public List<BatteryDTO> getBatterys() {
-        return batteryRepository.findAll().stream().map(BatteryDTO::fromEntity).toList();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        List<Battery> batteries = authService.hasPermission(auth, "ADMIN") ? batteryRepository.findAll()
+                : batteryRepository.findByTeam_IdIn(authService.accessibleTeamIds(auth));
+        return batteries.stream().map(BatteryDTO::fromEntity).toList();
     }
 
     /**
@@ -240,6 +243,7 @@ public class PhysicalTestService {
         Battery battery = batteryRepository.findById(request.id())
                 .orElseThrow(() -> new EntityNotFoundException("Battery non trouvée avec l'ID : " + request.id()));
 
+        requireTeamAccess(battery.getTeam().getId());
         if (request.newName() != null && !request.newName().isBlank()) {
             battery.setName(request.newName());
         }
@@ -253,6 +257,12 @@ public class PhysicalTestService {
                     battery.getTests().add(test);
                 }
             }
+        }
+    }
+
+    private void requireTeamAccess(Long teamId) {
+        if (!authService.canAccessTeams(SecurityContextHolder.getContext().getAuthentication(), List.of(teamId))) {
+            throw new AccessDeniedException("Vous ne pouvez pas modifier les batteries de cette équipe.");
         }
     }
 

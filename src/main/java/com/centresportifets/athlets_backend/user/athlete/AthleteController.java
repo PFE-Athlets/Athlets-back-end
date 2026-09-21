@@ -40,8 +40,8 @@ public class AthleteController {
     }
 
     @GetMapping("/team/{teamId}")
-    public List<AthleteData> getAthletesForTeam(@PathVariable long teamId){
-        return athleteService.getAthletesForTeam(teamId);
+    public List<AthleteData> getAthletesForTeam(@PathVariable long teamId, Authentication auth){
+        return athleteService.getAthletesForTeam(teamId, auth);
     }
 
     @GetMapping("/current")

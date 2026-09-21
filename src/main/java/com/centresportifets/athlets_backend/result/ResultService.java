@@ -202,11 +202,17 @@ public class ResultService {
         resultRepository.save(result);
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
-    public void approveAthleteResult(Long testResultId, boolean approved) {
+    @Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
+    public void approveAthleteResult(Long testResultId, boolean approved, Authentication auth) {
         Result result = resultRepository.findById(testResultId)
                 .orElseThrow(() -> new IllegalArgumentException("Physical test result not found"));
 
+        if (!authService.canManageAthletes(auth, List.of(result.getAthlete().getUsername()))) {
+            throw new AccessDeniedException("Vous ne pouvez pas approuver ce résultat.");
+        }
+        result.setIntervenant(userAccountRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Intervenant introuvable.")));
         String status = approved ? ResultStatus.APPROVED.getStatus() : ResultStatus.REJECTED.getStatus();
         result.setStatus(status);
         resultRepository.save(result);
@@ -223,7 +229,7 @@ public class ResultService {
 
         switch (userType) {
             case ADMIN -> {
-                return toResultRow(result);
+                return toResultRow(result, auth);
             }
 
             case ATHLETE -> {
@@ -233,32 +239,15 @@ public class ResultService {
                     );
                 }
 
-                return toResultRow(result);
+                return toResultRow(result, auth);
             }
 
             case COACH, KINE -> {
-                Battery battery = resolveBattery(result);
-
-                Team team = battery != null
-                        ? battery.getTeam()
-                        : resolvePrimaryTeam(result.getAthlete());
-
-                if (team == null || team.getId() == null) {
-                    throw new AccessDeniedException(
-                            "No accessible team is associated with this result."
-                    );
+                if (!authService.canManageAthletes(auth, List.of(result.getAthlete().getUsername()))) {
+                    throw new AccessDeniedException("You are not authorized to access this result.");
                 }
 
-                if (!authService.canAccessTeams(
-                        auth,
-                        List.of(team.getId())
-                )) {
-                    throw new AccessDeniedException(
-                            "You are not authorized to access this result."
-                    );
-                }
-
-                return toResultRow(result);
+                return toResultRow(result, auth);
             }
 
             default -> throw new AccessDeniedException(
@@ -268,6 +257,7 @@ public class ResultService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public List<ResultRowData> getTeamResults(
             Long teamId,
             Authentication auth) {
@@ -308,7 +298,7 @@ public class ResultService {
                                 )
                                 .isEmpty()
                 )
-                .map(this::toResultRow)
+                .map(result -> toResultRow(result, auth))
                 .toList();
     }
 
@@ -347,7 +337,7 @@ public class ResultService {
     @Transactional(readOnly = true)
     public ResultPageData getResultPageData(Authentication auth) {
         List<ResultRowData> rows = getVisibleResults(auth).stream()
-                .map(this::toResultRow)
+                .map(result -> toResultRow(result, auth))
                 .toList();
 
         return new ResultPageData(rows, buildFilterOptions(rows));
@@ -365,7 +355,7 @@ public class ResultService {
             Long batteryId) {
         List<ResultRowData> rows = filterRows(
                 getVisibleResults(auth).stream()
-                        .map(this::toResultRow)
+                        .map(result -> toResultRow(result, auth))
                         .toList(),
                 startDate,
                 endDate,
@@ -598,9 +588,9 @@ public class ResultService {
         }
     }
 
-    private ResultRowData toResultRow(Result result) {
-        Battery battery = resolveBattery(result);
-        Team team = battery != null ? battery.getTeam() : resolvePrimaryTeam(result.getAthlete());
+    private ResultRowData toResultRow(Result result, Authentication auth) {
+        Battery battery = resolveBattery(result, auth);
+        Team team = battery != null ? battery.getTeam() : resolvePrimaryTeam(result.getAthlete(), auth);
         List<ResultRowData.ValueSummary> valueSummaries = result.getResultValues().stream()
                 .map(this::toValueSummary)
                 .toList();
@@ -718,14 +708,14 @@ public class ResultService {
                 toRoleLabel(intervenant.getAccessLevel()));
     }
 
-    private Battery resolveBattery(Result result) {
+    private Battery resolveBattery(Result result, Authentication auth) {
         if (result.getAthlete() == null || result.getTest() == null) {
             return null;
         }
 
         for (AthleteTeam athleteTeam : result.getAthlete().getAthleteTeams()) {
             Team team = athleteTeam.getTeam();
-            if (team == null || team.getId() == null) {
+            if (team == null || team.getId() == null || !authService.canAccessTeams(auth, List.of(team.getId()))) {
                 continue;
             }
 
@@ -738,13 +728,11 @@ public class ResultService {
         return null;
     }
 
-    private Team resolvePrimaryTeam(Athlete athlete) {
-        if (athlete == null || athlete.getAthleteTeams().isEmpty()) {
-            return null;
-        }
-
-        AthleteTeam athleteTeam = athlete.getAthleteTeams().get(0);
-        return athleteTeam == null ? null : athleteTeam.getTeam();
+    private Team resolvePrimaryTeam(Athlete athlete, Authentication auth) {
+        if (athlete == null) return null;
+        return athlete.getAthleteTeams().stream().map(AthleteTeam::getTeam)
+                .filter(team -> team != null && authService.canAccessTeams(auth, List.of(team.getId())))
+                .findFirst().orElse(null);
     }
 
     private String buildResultValueSummary(List<ResultRowData.ValueSummary> values) {

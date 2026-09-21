@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import com.centresportifets.athlets_backend.auth.AuthService;
@@ -62,7 +64,7 @@ public class TeamService {
 
     public List<SubcoachDisplay> getSubcoaches(Long teamId, Authentication auth) {
         if (!authService.canAccessTeams(auth, List.of(teamId))) {
-            throw new SecurityException("You are not authorized to access this team's subcoaches.");
+            throw new AccessDeniedException("You are not authorized to access this team's subcoaches.");
         }
 
         List<SubcoachDisplay> subcoaches = new ArrayList<>();
@@ -76,18 +78,16 @@ public class TeamService {
         return subcoaches;
     }
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
+    @Transactional
     public void modifyTeam(Long teamId, TeamModificationRequest request, Authentication auth) {
         if (!authService.canAccessTeams(auth, List.of(teamId))) {
-            throw new SecurityException("You are not authorized to modify this team.");
+            throw new AccessDeniedException("You are not authorized to modify this team.");
         }
 
-        if (request.getNewSubcoachesIds().contains(request.getNewCoachId())) {
-            throw new IllegalArgumentException("The head coach cannot be listed as a subcoach.");
-        }
 
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new IllegalArgumentException("Team not found"));
-        team.setName(request.getNewTeamName());
+        team.setName(validName(request.getNewTeamName()));
         teamRepository.save(team);
 
         updateTeamCoaches(team, request.getNewCoachId(), request.getNewSubcoachesIds());
@@ -95,9 +95,10 @@ public class TeamService {
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
+    @Transactional
     public void createTeam(TeamCreationRequest request, Authentication auth) {
         Team team = new Team();
-        team.setName(request.getTeamName());
+        team.setName(validName(request.getTeamName()));
         team.setSport(sportRepository.findById(request.getSportId()).orElseThrow(() -> new IllegalArgumentException("Sport not found")));
         teamRepository.save(team);
 
@@ -105,25 +106,40 @@ public class TeamService {
         updateTeamKinesiologists(team, request.getKineIds());
     }
 
-    private void updateTeamCoaches(Team team, Long newCoachId, List<Long> newSubcoachesIds) {
+    private String validName(String name) {
+        if (name == null || name.isBlank() || name.trim().length() > 50) {
+            throw new IllegalArgumentException("Nom d'équipe obligatoire (50 caractères maximum).");
+        }
+        return name.trim();
+    }
+
+    private List<Long> idsOrEmpty(List<Long> ids) {
+        if (ids == null) return List.of();
+        if (ids.stream().anyMatch(java.util.Objects::isNull) || ids.stream().distinct().count() != ids.size()) {
+            throw new IllegalArgumentException("Les identifiants doivent être uniques et non nuls.");
+        }
+        return ids;
+    }
+
+    private void updateTeamCoaches(Team team, Long newCoachId, List<Long> subcoachIds) {
+        List<Long> newSubcoachesIds = idsOrEmpty(subcoachIds);
+        if (newCoachId != null && newSubcoachesIds.contains(newCoachId)) {
+            throw new IllegalArgumentException("Le coach principal ne peut pas être un adjoint.");
+        }
+        // Remove previous assignments first, including a former head coach becoming an assistant.
         Coach previousHeadCoach = coachRepository.findByTeam_IdAndIsHeadCoachTrue(team.getId());
-        if (previousHeadCoach != null && !previousHeadCoach.getId().equals(newCoachId)) {
-            setCoach(previousHeadCoach, null, false);
-        }
-
-        Coach newHeadCoach = coachRepository.findById(newCoachId).orElseThrow(() -> new IllegalArgumentException("New head coach not found"));
-        setCoach(newHeadCoach, team, true);
-
         List<Coach> previousSubcoaches = coachRepository.findByTeam_IdAndIsHeadCoachFalse(team.getId());
-        for (Coach previousSubcoach : previousSubcoaches) {
-            if (!newSubcoachesIds.contains(previousSubcoach.getId())) {
-                setCoach(previousSubcoach, null, false);
-            }
+        if (previousHeadCoach != null) setCoach(previousHeadCoach, null, false);
+        previousSubcoaches.forEach(coach -> setCoach(coach, null, false));
+        if (newCoachId != null) {
+            Coach headCoach = coachRepository.findById(newCoachId)
+                    .orElseThrow(() -> new IllegalArgumentException("Coach principal introuvable."));
+            setCoach(headCoach, team, true);
         }
-
-        for (Long newSubcoachId : newSubcoachesIds) {
-            Coach newSubcoach = coachRepository.findById(newSubcoachId).orElseThrow(() -> new IllegalArgumentException("New subcoach not found"));
-            setCoach(newSubcoach, team, false);
+        for (Long id : newSubcoachesIds) {
+            Coach coach = coachRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Coach adjoint introuvable."));
+            setCoach(coach, team, false);
         }
     }
 
@@ -131,11 +147,11 @@ public class TeamService {
         coach.setTeam(team);
         coach.setSport(team != null ? team.getSport() : null);
         coach.setHeadCoach(isHeadCoach);
-        coach.setAccountStatus(team != null ? UserStatus.ACTIVE.getStatus() : UserStatus.INACTIVE.getStatus());
         coachRepository.save(coach);
     }
 
-    private void updateTeamKinesiologists(Team team, List<Long> newKineIds) {
+    private void updateTeamKinesiologists(Team team, List<Long> kineIds) {
+        List<Long> newKineIds = idsOrEmpty(kineIds);
         List<Kine> previousKinesiologists = kineTeamRepository.findByTeamId(team.getId())
                 .stream()
                 .map(kineTeam -> kineTeam.getKine())
@@ -165,7 +181,7 @@ public class TeamService {
                 return teamRepository.findAll();
             case COACH:
                 Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
-                return List.of(coach.getTeam());
+                return coach.getTeam() == null ? List.of() : List.of(coach.getTeam());
             case KINE:
                 Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
                 return kineTeamRepository.findByKineId(kine.getId())
@@ -179,13 +195,13 @@ public class TeamService {
                     .map(athleteTeam -> athleteTeam.getTeam())
                     .toList();
             default:
-                throw new SecurityException("You do not have permission to view teams.");
+                throw new AccessDeniedException("You do not have permission to view teams.");
         }
     }
 
     public List<KineDisplay> getKinesiologistsByTeamId(Long teamId, Authentication auth) {
         if (!authService.canAccessTeams(auth, List.of(teamId))) {
-            throw new SecurityException("You are not authorized to access this team's kinesiologists.");
+            throw new AccessDeniedException("You are not authorized to access this team's kinesiologists.");
         }
 
         List<KineDisplay> kinesiologists = new ArrayList<>();
@@ -200,7 +216,7 @@ public class TeamService {
 
     public List<AthletePreviewDisplay> getAthletesPreview(Long teamId, Authentication auth) {
         if (!authService.canAccessTeams(auth, List.of(teamId))) {
-            throw new SecurityException("You are not authorized to access this team's athletes.");
+            throw new AccessDeniedException("You are not authorized to access this team's athletes.");
         }
 
         List<AthletePreviewDisplay> athletePreviews = new ArrayList<>();

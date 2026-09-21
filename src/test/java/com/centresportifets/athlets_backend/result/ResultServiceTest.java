@@ -83,6 +83,24 @@ class ResultServiceTest {
     }
 
     @Test
+    void kineCanApproveOnlyAnAthleteTheyManage() {
+        Athlete athlete = new Athlete(); athlete.setUsername("athlete");
+        Result result = new Result(); result.setAthlete(athlete);
+        when(resultRepository.findById(1L)).thenReturn(Optional.of(result));
+        org.junit.jupiter.api.Assertions.assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> resultService.approveAthleteResult(1L, true, authentication));
+        org.mockito.Mockito.verify(resultRepository, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
+        when(authService.canManageAthletes(authentication, List.of("athlete"))).thenReturn(true);
+        when(authentication.getName()).thenReturn("kine");
+        Kine kine = new Kine();
+        when(userAccountRepository.findByUsername("kine")).thenReturn(Optional.of(kine));
+        resultService.approveAthleteResult(1L, true, authentication);
+        assertThat(result.getStatus()).isEqualTo(ResultStatus.APPROVED.getStatus());
+        assertThat(result.getIntervenant()).isSameAs(kine);
+        verify(resultRepository).save(result);
+    }
+
+    @Test
     void getTestResults_ForKine_ReturnsAssociatedTeamResults() {
         Kine kine = new Kine();
         kine.setId(99L);

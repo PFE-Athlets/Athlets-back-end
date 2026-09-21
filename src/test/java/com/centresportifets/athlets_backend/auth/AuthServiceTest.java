@@ -121,6 +121,7 @@ class AuthServiceTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
+        when(request.getSession(true)).thenReturn(new org.springframework.mock.web.MockHttpSession());
 
         authService.loginUser(mockUser, request, response);
 

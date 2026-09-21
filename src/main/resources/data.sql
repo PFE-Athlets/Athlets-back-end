@@ -306,3 +306,6 @@ INSERT INTO Result (id_test, id_athlete, id_intervenant, proof, status, comment,
  'À réaliser la semaine prochaine.',
  '2026-05-20');
 
+
+-- Seeded active accounts predate invitation-based activation.
+UPDATE user_account SET account_activated = TRUE WHERE account_status = 'Active';

@@ -9,6 +9,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface AthleteTeamDisciplineRepository extends JpaRepository<AthleteTeamDiscipline, Long> {
+    @Modifying
+    @Query("DELETE FROM AthleteTeamDiscipline link WHERE link.athlete.id = :athleteId AND link.team.id IN :teamIds")
+    void deleteByAthlete_IdAndTeam_IdIn(@Param("athleteId") Long athleteId, @Param("teamIds") List<Long> teamIds);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM AthleteTeamDiscipline atd WHERE atd.athlete.id = :athleteId AND atd.id NOT IN :athleteTeamDisciplineIds")

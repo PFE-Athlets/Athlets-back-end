@@ -53,8 +53,8 @@ public class ResultController {
     }
 
     @PutMapping("/verify/{testResultId}/{approved}")
-    public ResponseEntity<Void> approveResult(@PathVariable Long testResultId, @PathVariable boolean approved) {
-        resultService.approveAthleteResult(testResultId, approved);
+    public ResponseEntity<Void> approveResult(@PathVariable Long testResultId, @PathVariable boolean approved, Authentication auth) {
+        resultService.approveAthleteResult(testResultId, approved, auth);
         return ResponseEntity.ok().build();
     }
 

@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class KineService {
     private final KineRepository kineRepository;
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
     public List<KineDisplay> getKinesiologists() {
         return kineRepository.findAll().stream().map(kine -> {
             KineDisplay display = new KineDisplay();

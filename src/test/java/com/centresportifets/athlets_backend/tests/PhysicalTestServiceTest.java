@@ -144,16 +144,15 @@ class PhysicalTestServiceTest {
             teamTest.setId(2L);
             teamTest.setName("Sprint 30m");
 
-            when(authentication.getName()).thenReturn(username);
             when(authService.getAuthenticatedUserType(authentication)).thenReturn(UserType.COACH);
-            when(coachRepository.findByUsername(username)).thenReturn(Optional.of(coach));
-            when(physicalTestRepository.findAllByBatterysTeamId(teamId)).thenReturn(List.of(teamTest));
+            when(authService.accessibleTeamIds(authentication)).thenReturn(List.of(teamId));
+            when(physicalTestRepository.findAll()).thenReturn(List.of(teamTest));
 
             List<PhysicalTestResponseDTO> result = physicalTestService.getPhysicalTests(authentication);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).name()).isEqualTo("Sprint 30m");
-            verify(physicalTestRepository, times(1)).findAllByBatterysTeamId(teamId);
+            verify(physicalTestRepository, times(1)).findAll();
         }
 
         @Test
@@ -265,6 +264,10 @@ class PhysicalTestServiceTest {
             existingBattery.setId(1L);
             existingBattery.setName("Vieille Battery");
             existingBattery.setStatus(true);
+            Team team = new Team();
+            team.setId(10L);
+            existingBattery.setTeam(team);
+            when(authService.canAccessTeams(any(), org.mockito.ArgumentMatchers.eq(List.of(10L)))).thenReturn(true);
 
             PhysicalTest existingTest = new PhysicalTest();
             existingTest.setId(10L);

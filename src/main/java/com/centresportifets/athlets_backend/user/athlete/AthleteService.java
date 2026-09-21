@@ -57,6 +57,7 @@ public class AthleteService {
     @Transactional
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
     public String createAthlete(AthleteCreateRequest request, Authentication auth) {
+        validateTeamsInfo(request.getTeamsInfo(), false);
         if (userAccountRepository.existsByEmail(request.getEmail().trim())) {
             throw new IllegalArgumentException("Ce courriel est déjà utilisé.");
         }
@@ -69,7 +70,7 @@ public class AthleteService {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
 
-        Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode("ChangeMe123!"));
+        Athlete athlete = AthleteMapper.toAthlete(request, passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
         athlete.setAccountStatus(UserStatus.PENDING.getStatus());
         athlete = athleteRepository.save(athlete);
 
@@ -84,10 +85,11 @@ public class AthleteService {
 
         switch (userType) {
             case ADMIN:
-                return athleteRepository.findAll().stream().map((athlete) -> new AthleteData(athlete)).toList();
+                return athleteRepository.findAll().stream().map((athlete) -> visibleData(athlete, auth)).toList();
             case COACH:
                 Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
-                return athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId()).stream().map((athlete) -> new AthleteData(athlete)).toList();
+                if (coach.getTeam() == null) return List.of();
+                return athleteRepository.findByAthleteTeamsTeamId(coach.getTeam().getId()).stream().map((athlete) -> visibleData(athlete, auth)).toList();
             case KINE:
                 Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Current coach could not be found."));
                 List<Athlete> athletes = new ArrayList<>();
@@ -97,15 +99,16 @@ public class AthleteService {
                         List<Athlete> teamAthletes = athleteRepository.findByAthleteTeamsTeamId(team.getId());
                         athletes.addAll(teamAthletes);
                     });
-                return athletes.stream().map((athlete) -> new AthleteData(athlete)).toList();
+                return athletes.stream().collect(java.util.stream.Collectors.toMap(Athlete::getId, athlete -> athlete, (first, second) -> first)).values().stream().map((athlete) -> visibleData(athlete, auth)).toList();
             default:
                 throw new SecurityException("You do not have permission to view teams.");
         }
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH') or @authService.hasPermission(authentication, 'KINE')")
-    public List<AthleteData> getAthletesForTeam(long teamId){
-        return athleteRepository.findByAthleteTeamsTeamId(teamId).stream().map((athlete) -> new AthleteData(athlete)).toList();
+    public List<AthleteData> getAthletesForTeam(long teamId, Authentication auth){
+        if (!authService.canAccessTeams(auth, List.of(teamId))) throw new AccessDeniedException("équipe non autorisée.");
+        return athleteRepository.findByAthleteTeamsTeamId(teamId).stream().map((athlete) -> visibleData(athlete, auth)).toList();
     }
 
     @PreAuthorize("@authService.hasPermission(authentication, 'ATHLETE')")
@@ -127,24 +130,48 @@ public class AthleteService {
             throw new AccessDeniedException("You do not have permission to manage this athlete.");
         }
 
+        validateTeamsInfo(request.getTeamsInfo(), true);
         List<Long> teamIds = request.getTeamsInfo().stream().map(TeamInfoData::getTeamId).toList();
-        if (!authService.canAccessTeams(auth, teamIds)) {
+        if (!teamIds.isEmpty() && !authService.canAccessTeams(auth, teamIds)) {
             throw new AccessDeniedException("You do not have permission to manage one or more of the specified teams.");
         }
-
+        boolean admin = authService.hasPermission(auth, "ADMIN");
+        List<Long> manageableIds = admin ? List.of() : authService.accessibleTeamIds(auth);
+        // Replace only associations inside the caller's scope, preserving all other teams.
+        List<Long> affectedIds = new ArrayList<>(teamIds);
+        athleteTeamRepository.findByAthleteId(athleteId).stream()
+                .map(link -> link.getTeam().getId())
+                .filter(id -> admin || manageableIds.contains(id))
+                .forEach(affectedIds::add);
+        affectedIds = affectedIds.stream().distinct().toList();
+        if (!affectedIds.isEmpty()) {
+            athleteTeamPositionRepository.deleteByAthlete_IdAndTeam_IdIn(athleteId, affectedIds);
+            athleteTeamDisciplineRepository.deleteByAthlete_IdAndTeam_IdIn(athleteId, affectedIds);
+            athleteTeamRepository.deleteByAthlete_IdAndTeam_IdIn(athleteId, affectedIds);
+        }
         athlete.setPhone(request.getPhone());
         athlete.setWeightKg(request.getWeightKg());
         athlete.setInjuryHistory(request.getInjuryHistory());
         athleteRepository.save(athlete);
+        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), new ArrayList<>(), new ArrayList<>());
+    }
 
-        athleteTeamRepository.deleteByAthlete_IdAndTeam_IdNotIn(athleteId, teamIds);
+    private void validateTeamsInfo(List<TeamInfoData> teams, boolean allowEmpty) {
+        if (teams == null || (!allowEmpty && teams.isEmpty())
+                || teams.stream().anyMatch(team -> team == null || team.getTeamId() == null)
+                || teams.stream().map(TeamInfoData::getTeamId).distinct().count() != teams.size()) {
+            throw new IllegalArgumentException("La liste d'équipes doit contenir des identifiants uniques et valides.");
+        }
+    }
 
-        List<Long> updatedOrNewDisciplineIds = new ArrayList<>();
-        List<Long> updatedOrNewPositionIds = new ArrayList<>();
-        createAthleteTeamsAssociations(athlete, request.getTeamsInfo(), updatedOrNewDisciplineIds, updatedOrNewPositionIds);
-
-        athleteTeamDisciplineRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewDisciplineIds);
-        athleteTeamPositionRepository.deleteByAthlete_IdAndIdNotIn(athleteId, updatedOrNewPositionIds);
+    private AthleteData visibleData(Athlete athlete, Authentication auth) {
+        AthleteData data = new AthleteData(athlete);
+        if (authService.hasPermission(auth, "ADMIN")) return data;
+        List<Long> ids = authService.accessibleTeamIds(auth);
+        data.setTeams(athlete.getAthleteTeams().stream().filter(link -> ids.contains(link.getTeam().getId())).map(link -> link.getTeam()).toList());
+        data.setPositions(athlete.getAthleteTeamPositions().stream().filter(link -> ids.contains(link.getTeam().getId())).map(link -> link.getPosition()).toList());
+        data.setDisciplines(athlete.getAthleteTeamDisciplines().stream().filter(link -> ids.contains(link.getTeam().getId())).map(link -> link.getDiscipline()).toList());
+        return data;
     }
 
     @Transactional
@@ -158,7 +185,7 @@ public class AthleteService {
             if (teamInfo.getPositionId() != null) {
                 Position position = positionRepository.findById(teamInfo.getPositionId())
                         .orElseThrow(() -> new IllegalArgumentException("Position not found: " + teamInfo.getPositionId()));
-                if (position.getSport().getId() != team.getSport().getId()) {
+                if (!position.getSport().getId().equals(team.getSport().getId())) {
                     throw new IllegalArgumentException("Position does not belong to the same sport as the team.");
                 }
     
@@ -170,7 +197,7 @@ public class AthleteService {
             if (teamInfo.getDisciplineId() != null) {
                 Discipline discipline = disciplineRepository.findById(teamInfo.getDisciplineId())
                         .orElseThrow(() -> new IllegalArgumentException("Discipline not found: " + teamInfo.getDisciplineId()));
-                if (discipline.getSport().getId() != team.getSport().getId()) {
+                if (!discipline.getSport().getId().equals(team.getSport().getId())) {
                     throw new IllegalArgumentException("Discipline does not belong to the same sport as the team.");
                 }
     

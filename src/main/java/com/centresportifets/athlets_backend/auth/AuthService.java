@@ -26,6 +26,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.centresportifets.athlets_backend.email.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -85,9 +87,9 @@ public class AuthService {
 
 		UserAccount realUser = user.get();
 
-		if(realUser.getAccountStatus() == UserStatus.INACTIVE.getStatus()){
-			throw new IllegalStateException("User account is inactive");
-		}
+		if (!UserStatus.ACTIVE.getStatus().equals(realUser.getAccountStatus())) {
+            return Optional.empty();
+        }
 
 		return passwordEncoder.matches(rawPassword, realUser.getPassword())
 				? Optional.of(realUser)
@@ -101,7 +103,9 @@ public class AuthService {
 	 * @param username Username of the account to activate
 	 * @return Activation link to use from the frontend
 	 */
-	public String generateActivationTokenForUsername(String username) {
+	@Transactional
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
+    public String generateActivationTokenForUsername(String username) {
 		if (username == null || username.isBlank()) {
 			throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire.");
 		}
@@ -118,7 +122,8 @@ public class AuthService {
 	 * @param user User account to activate
 	 * @return Activation link to use from the frontend
 	 */
-	public String generateActivationTokenForUser(UserAccount user) {
+	@Transactional
+    public String generateActivationTokenForUser(UserAccount user) {
 		if (user == null) {
 			throw new IllegalArgumentException("L'utilisateur est obligatoire.");
 		}
@@ -151,7 +156,6 @@ public class AuthService {
 
 		emailService.sendActivationEmail(user.getEmail(), activationLink);
 
-		System.out.println("Lien d'activation généré : " + activationLink);
 
 		return activationLink;
 	}
@@ -161,7 +165,8 @@ public class AuthService {
 	 *
 	 * @param request Activation request containing token and new password
 	 */
-	public void activateAccount(ActivateAccountRequest request) {
+	@Transactional
+    public void activateAccount(ActivateAccountRequest request) {
 		validateActivationRequest(request);
 
 		AccountToken accountToken = accountTokenRepository.findByToken(request.getToken())
@@ -187,6 +192,7 @@ public class AuthService {
 
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		user.setAccountStatus(UserStatus.ACTIVE.getStatus());
+        user.setAccountActivated(true);
 
 		accountToken.setUsedAt(LocalDateTime.now());
 
@@ -268,8 +274,6 @@ public class AuthService {
 
 		emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
-		System.out.println("Lien de réinitialisation généré : " + resetLink);
-		System.out.println("Lien de réinitialisation pour " + user.getEmail() + " : " + resetLink);
 
 		return resetLink;
 	}
@@ -346,6 +350,9 @@ public class AuthService {
 		SecurityContextHolder.setContext(context);
 
 		securityContextRepository.saveContext(context, request, response);
+        var session = request.getSession(true);
+        session.setAttribute("accountId", UserAccount.getId());
+        session.setAttribute("accountSessionVersion", UserAccount.getSessionVersion());
 	}
 
 	/**
@@ -367,7 +374,7 @@ public class AuthService {
 	 *  Checks if the userId provided (like the one for completing a test) corresponds to the user connected to the backend
 	 */
 	public boolean checkIfUserIsAuthenticatedUser(Long userId, Authentication auth) {
-		Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+		Optional<UserAccount> userOpt = activeUser(auth);
 		if (userOpt.isEmpty()) {
 			return false;
 		}
@@ -390,9 +397,9 @@ public class AuthService {
 			case COACH:
 				Coach coach = coachRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
 				if (teamIds.size() > 1) {
-					throw new IllegalArgumentException("Coaches can only manage one team at a time.");
+					return false;
 				}
-				return teamIds.get(0).equals(coach.getTeam().getId());
+				return coach.getTeam() != null && teamIds.stream().allMatch(id -> id.equals(coach.getTeam().getId()));
 			case KINE:
 				Kine kine = kineRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
 				return teamIds.stream().allMatch(teamId -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), teamId));
@@ -409,8 +416,9 @@ public class AuthService {
      * is a COACH who manages ALL of the athletes specified by their usernames.
      */
     public boolean canManageAthletes(Authentication auth, List<String> usernames) {
+        if (usernames == null || usernames.isEmpty() || usernames.stream().anyMatch(java.util.Objects::isNull)) return false;
         if (hasPermission(auth, "ADMIN")) {
-            return true;
+            return athleteRepository.findAllByUsernameIn(usernames).size() == usernames.stream().distinct().count();
         }
         
         if (hasPermission(auth, "COACH")) {
@@ -418,10 +426,11 @@ public class AuthService {
                     .orElseThrow(() -> new IllegalArgumentException("Coach profile not found"));
             
             List<Athlete> athletes = athleteRepository.findAllByUsernameIn(usernames);
-            if (athletes.isEmpty() || athletes.size() != usernames.size()) {
+            if (athletes.isEmpty() || athletes.size() != usernames.stream().distinct().count()) {
                 return false;
             }
             
+            if (coach.getTeam() == null) return false;
             Long coachTeamId = coach.getTeam().getId();
             return athletes.stream().allMatch(athlete -> 
                 athlete.getAthleteTeams().stream()
@@ -434,6 +443,7 @@ public class AuthService {
 					.orElseThrow(() -> new IllegalArgumentException("Kinesiologist profile not found"));
 		
 			List<Athlete> athletes = athleteRepository.findAllByUsernameIn(usernames);
+            if (athletes.isEmpty() || athletes.size() != usernames.stream().distinct().count()) return false;
 			for (Athlete athlete : athletes) {
 				boolean isAssociated = athlete.getAthleteTeams().stream()
 						.anyMatch(at -> kineTeamRepository.existsByKineIdAndTeamId(kine.getId(), at.getId().getTeamId()));
@@ -462,7 +472,7 @@ public class AuthService {
     public boolean hasPermission(Authentication auth, String userTypeName) {
         try {
             UserType userType = UserType.valueOf(userTypeName);
-            Optional<UserAccount> userOpt = userRepository.findByUsername(auth.getName());
+            Optional<UserAccount> userOpt = activeUser(auth);
             if (userOpt.isEmpty()) {
                 return false;
             }
@@ -477,7 +487,7 @@ public class AuthService {
 	 *  Retrieves the usertype of the current authenticated user
 	 */
 	public UserType getAuthenticatedUserType(Authentication auth){
-		int permissionLevel = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new IllegalArgumentException("No user logged in the backend")).getAccessLevel();
+		int permissionLevel = activeUser(auth).map(UserAccount::getAccessLevel).orElse(0);
 		switch (permissionLevel){
 			case 1: return UserType.ADMIN;
 			case 2: return UserType.COACH;
@@ -487,41 +497,67 @@ public class AuthService {
 		}
 	}
 
-	/**
-     * Deactivates a user account based on the caller's role permissions.
-     * - Admins can deactivate any account except other Admins.
-     * - Coaches can only deactivate Athletes belonging to their own team.
-     *
-     * @param userId To-be-deactivated target user id
-     * @param auth Current authenticated caller session
-     */
+    private Optional<UserAccount> activeUser(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return Optional.empty();
+        return userRepository.findByUsername(auth.getName())
+                .filter(user -> UserStatus.ACTIVE.getStatus().equals(user.getAccountStatus()));
+    }
+
+    public List<Long> accessibleTeamIds(Authentication auth) {
+        return switch (getAuthenticatedUserType(auth)) {
+            case ADMIN -> throw new IllegalArgumentException("Administrators are not restricted to team IDs.");
+            case COACH -> coachRepository.findByUsername(auth.getName())
+                    .filter(coach -> coach.getTeam() != null)
+                    .map(coach -> List.of(coach.getTeam().getId())).orElse(List.of());
+            case KINE -> kineRepository.findByUsername(auth.getName())
+                    .map(kine -> kineTeamRepository.findByKineId(kine.getId()).stream()
+                            .map(link -> link.getTeam().getId()).toList()).orElse(List.of());
+            case ATHLETE -> athleteRepository.findByUsername(auth.getName())
+                    .map(athlete -> athleteTeamRepository.findByAthleteId(athlete.getId()).stream()
+                            .map(link -> link.getTeam().getId()).toList()).orElse(List.of());
+            default -> List.of();
+        };
+    }
+
+    @Transactional
+    public void invalidateAccountTokens(UserAccount user) {
+        for (String type : List.of(ACTIVATION_TOKEN_TYPE, PASSWORD_RESET_TOKEN_TYPE)) {
+            List<AccountToken> tokens = accountTokenRepository.findByUserAndTypeAndUsedAtIsNull(user, type);
+            tokens.forEach(token -> token.setUsedAt(LocalDateTime.now()));
+            accountTokenRepository.saveAll(tokens);
+        }
+    }
+
+    @Transactional
     public void setUserInactive(Long userId, Authentication auth) {
+        UserType callerType = getAuthenticatedUserType(auth);
+        // Serialize administrator deactivations so concurrent requests cannot remove every admin.
+        List<UserAccount> administrators = callerType == UserType.ADMIN
+                ? userRepository.findByAccessLevelOrderByIdAsc(UserType.ADMIN.getPermissionLevel()) : List.of();
         UserAccount targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Target user account not found."));
-        
-        UserType callerType = getAuthenticatedUserType(auth);
-
         switch (callerType) {
-            case ADMIN:
-                if (targetUser.getAccessLevel() == UserType.ADMIN.getPermissionLevel()) {
-                    throw new AccessDeniedException("Administrators cannot deactivate other admin accounts.");
+            case ADMIN -> {
+                if (checkIfUserIsAuthenticatedUser(userId, auth)) {
+                    throw new AccessDeniedException("Vous ne pouvez pas désactiver votre propre compte.");
                 }
-                break;
-
-            case COACH:
-                if (targetUser.getAccessLevel() != UserType.ATHLETE.getPermissionLevel()) 
-                    throw new AccessDeniedException("Coaches are only authorized to deactivate athletes.");
-
-				if(!canManageAthletes(auth, List.of(targetUser.getUsername())))
-					throw new AccessDeniedException("You can only deactivate athletes belonging to your own team.");
-
-                break;
-
-            default:
-                throw new AccessDeniedException("You do not have permission to modify user statuses.");
+                if (targetUser.getAccessLevel() == UserType.ADMIN.getPermissionLevel()
+                        && UserStatus.ACTIVE.getStatus().equals(targetUser.getAccountStatus())
+                        && userRepository.countByAccessLevelAndAccountStatus(1, UserStatus.ACTIVE.getStatus()) <= 1) {
+                    throw new AccessDeniedException("Le dernier administrateur actif ne peut pas être désactivé.");
+                }
+            }
+            case COACH, KINE -> {
+                if (targetUser.getAccessLevel() != UserType.ATHLETE.getPermissionLevel()
+                        || !canManageAthletes(auth, List.of(targetUser.getUsername()))) {
+                    throw new AccessDeniedException("Vous pouvez uniquement désactiver les athlètes de vos équipes.");
+                }
+            }
+            default -> throw new AccessDeniedException("Vous ne pouvez pas modifier le statut de ce compte.");
         }
-
         targetUser.setAccountStatus(UserStatus.INACTIVE.getStatus());
+        targetUser.setSessionVersion(targetUser.getSessionVersion() + 1);
+        invalidateAccountTokens(targetUser);
         userRepository.save(targetUser);
     }
 }

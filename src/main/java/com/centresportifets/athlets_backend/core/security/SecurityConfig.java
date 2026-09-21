@@ -28,14 +28,13 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, com.centresportifets.athlets_backend.user.UserAccountRepository users) throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						auth ->
 								auth.requestMatchers(
 												"/api/auth/login",
 												"/api/auth/activate",
-												"/api/auth/dev/generate-activation-token",
 												"/api/auth/password-reset/request",
         										"/api/auth/password-reset/confirm")
 										.permitAll()
@@ -50,7 +49,8 @@ public class SecurityConfig {
 				.configurationSource(LocalConfigurationSource())
 			);
 
-		return http.build();
+		http.addFilterAfter(new ActiveAccountFilter(users), org.springframework.security.web.context.SecurityContextHolderFilter.class);
+        return http.build();
 	}
 
 	UrlBasedCorsConfigurationSource LocalConfigurationSource() {

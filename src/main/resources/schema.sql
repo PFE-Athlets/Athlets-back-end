@@ -74,6 +74,8 @@ CREATE TABLE User_Account (
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     account_status VARCHAR(15) NOT NULL DEFAULT 'Active',
+    account_activated BOOLEAN NOT NULL DEFAULT FALSE,
+    session_version BIGINT NOT NULL DEFAULT 0,
     account_creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
     access_level INT NOT NULL, -- 1: Administrator, 2: Coach, 3: Athlete, 4: Kinesiologist
     CONSTRAINT chk_account_status CHECK (account_status IN ('Active', 'Inactive','Pending')),

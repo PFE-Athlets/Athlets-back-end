@@ -35,6 +35,12 @@ public class UserAccount {
     @Column(name = "account_status", nullable = false, length = 10)
     private String accountStatus;
 
+    @Column(name = "account_activated", nullable = false)
+    private boolean accountActivated;
+
+    @Column(name = "session_version", nullable = false)
+    private long sessionVersion;
+
     @Column(name = "account_creation_date", nullable = false)
     private LocalDate accountCreationDate = LocalDate.now();
 

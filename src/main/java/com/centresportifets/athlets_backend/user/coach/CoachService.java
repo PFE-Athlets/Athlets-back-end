@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class CoachService {
     private final CoachRepository coachRepository;
 
-    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN') or @authService.hasPermission(authentication, 'COACH')")
+    @PreAuthorize("@authService.hasPermission(authentication, 'ADMIN')")
     public List<CoachListDisplay> getCoaches() {
         return coachRepository.findAll().stream().map(coach -> {
             CoachListDisplay display = new CoachListDisplay();
